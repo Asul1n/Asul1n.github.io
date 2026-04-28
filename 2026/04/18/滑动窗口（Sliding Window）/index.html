@@ -1,0 +1,251 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>滑动窗口（Sliding Window） | Hexo</title><meta name="author" content="Asul1n"><meta name="copyright" content="Asul1n"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="滑动窗口主要用于解决连续区间的问题。它通过两个指针（左边界 left 和 右边界 right）来维护一个窗口，避免了嵌套循环产生的冗余计算。  右指针 (right)：主动探索者，负责扩大窗口，寻找新数据。 左指针 (left)：被动收缩者，负责当窗口不满足条件（如出现重复）时，剔除旧数据。  在“无重复字符的最长子串”问题中，哈希表（unordered_map）充当了实时报警器。  键 (Key">
+<meta property="og:type" content="article">
+<meta property="og:title" content="滑动窗口（Sliding Window）">
+<meta property="og:url" content="https://asul1n.github.io/2026/04/18/%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3%EF%BC%88Sliding%20Window%EF%BC%89/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="滑动窗口主要用于解决连续区间的问题。它通过两个指针（左边界 left 和 右边界 right）来维护一个窗口，避免了嵌套循环产生的冗余计算。  右指针 (right)：主动探索者，负责扩大窗口，寻找新数据。 左指针 (left)：被动收缩者，负责当窗口不满足条件（如出现重复）时，剔除旧数据。  在“无重复字符的最长子串”问题中，哈希表（unordered_map）充当了实时报警器。  键 (Key">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://asul1n.github.io/images/show/44873217_p0_master1200.jpg">
+<meta property="article:published_time" content="2026-04-17T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-18T15:37:25.924Z">
+<meta property="article:author" content="Asul1n">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://asul1n.github.io/images/show/44873217_p0_master1200.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "滑动窗口（Sliding Window）",
+  "url": "https://asul1n.github.io/2026/04/18/%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3%EF%BC%88Sliding%20Window%EF%BC%89/",
+  "image": "https://asul1n.github.io/images/show/44873217_p0_master1200.jpg",
+  "datePublished": "2026-04-17T16:00:00.000Z",
+  "dateModified": "2026-04-18T15:37:25.924Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Asul1n",
+      "url": "https://github.com/Asul1n"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://asul1n.github.io/2026/04/18/%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3%EF%BC%88Sliding%20Window%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '滑动窗口（Sliding Window）',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/images/show/44873217_p0_master1200.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">23</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/show/44873217_p0_master1200.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Hexo</span></a><a class="nav-page-title" href="/"><span class="site-name">滑动窗口（Sliding Window）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">滑动窗口（Sliding Window）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-17T16:00:00.000Z" title="发表于 2026-04-18 00:00:00">2026-04-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-04-18T15:37:25.924Z" title="更新于 2026-04-18 23:37:25">2026-04-18</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>滑动窗口主要用于解决<strong>连续区间</strong>的问题。它通过两个指针（左边界 <code>left</code> 和 右边界 <code>right</code>）来维护一个窗口，避免了嵌套循环产生的冗余计算。</p>
+<ul>
+<li><p><strong>右指针 (<code>right</code>)</strong>：主动探索者，负责扩大窗口，寻找新数据。</p></li>
+<li><p><strong>左指针 (<code>left</code>)</strong>：被动收缩者，负责当窗口不满足条件（如出现重复）时，剔除旧数据。</p></li>
+</ul>
+<p>在“无重复字符的最长子串”问题中，哈希表（<code>unordered_map</code>）充当了<strong>实时报警器</strong>。</p>
+<ul>
+<li><p><strong>键 (Key)</strong>：字符。</p></li>
+<li><p><strong>值 (Value)</strong>：该字符在当前窗口中出现的<strong>次数</strong>。</p></li>
+<li><p><strong>逻辑</strong>：</p>
+<ul>
+<li><p>每当 <code>right</code> 移入一个新字符，账本对应项 <code>+1</code>。</p></li>
+<li><p>如果账本显示某项数值 <code>&gt; 1</code>，说明发生了 <strong>Duplicate（重复）</strong>，此时必须移动 <code>left</code> 进行平账（<code>-1</code>）。</p></li>
+</ul></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">lengthOfLongestSubstring</span><span class="params">(string s)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 1. 初始化账本（哈希表）和双指针</span></span><br><span class="line">    unordered_map&lt;<span class="type">char</span>, <span class="type">int</span>&gt; window; </span><br><span class="line">    <span class="type">int</span> left = <span class="number">0</span>, right = <span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> res = <span class="number">0</span>; <span class="comment">// 记录结果</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (right &lt; s.<span class="built_in">size</span>()) &#123;</span><br><span class="line">        <span class="comment">// 2. 【进窗】：扩大窗口</span></span><br><span class="line">        <span class="type">char</span> c = s[right];</span><br><span class="line">        right++;</span><br><span class="line">        window[c]++; <span class="comment">// 记账</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 3. 【收缩】：判断窗口是否需要收缩（出现重复字符）</span></span><br><span class="line">        <span class="keyword">while</span> (window[c] &gt; <span class="number">1</span>) &#123;</span><br><span class="line">            <span class="type">char</span> d = s[left];</span><br><span class="line">            left++;</span><br><span class="line">            window[d]--; <span class="comment">// 平账：移出窗口的字符次数减 1</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 4. 【更新】：在这里更新最长长度</span></span><br><span class="line">        res = <span class="built_in">max</span>(res, right - left);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> res;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/Asul1n">Asul1n</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://asul1n.github.io/2026/04/18/%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3%EF%BC%88Sliding%20Window%EF%BC%89/">https://asul1n.github.io/2026/04/18/%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3%EF%BC%88Sliding%20Window%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://Asul1n.github.io" target="_blank">Hexo</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/images/show/44873217_p0_master1200.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/04/18/Cpp/%E9%93%BE%E8%A1%A8%E7%BB%86%E8%8A%82/" title="链表"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">链表</div></div><div class="info-2"><div class="info-item-1">   维度 新手写法 (初探逻辑) 高手写法 (工程实践)     哑节点 new 一个哑节点，最后手动 delete 在栈上创建 ListNode dummy(0)，自动回收   指针管理 频繁移动 dummy 指针，容易丢掉头节点 固定 dummy 节点，用 curr 指针负责跑路   进位处理 使用多个变量（a, b, sum, carry） 复用 sum 变量处理上一轮进位与当前和   空指针处理 大量的 if-else 分支判断 巧妙利用三目运算符或 while 条件融合     dummy：哨兵节点，哑节点  123456789101112131415161718192021// 缺陷：手动 new 哑节点若不 delete 会内存泄漏；变量定义冗余ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) &#123;    ListNode* dummy = new ListNode(0); // 堆内存申请    ListNode* curr = dummy;    int carry = 0;    while (l...</div></div></div></a><a class="pagination-related" href="/2026/04/16/Cpp/Vector/" title="Vector"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Vector</div></div><div class="info-2"><div class="info-item-1">vector 在内存中是连续存储的。这意味着它支持快速的随机访问，但在中间插入或删除元素的效率较低。  Size (大小)：当前容器中实际存储的元素个数。 Capacity (容量)：容器在不重新分配内存的情况下最多能容纳的元素个数。 扩容机制：当 size 超过 capacity 时，vector 会申请一块更大的内存（通常是原容量的 1.5 或 2 倍），将原数据拷贝过去，然后释放旧内存。  一，基础用法 初始化 123456#include &lt;vector&gt;std::vector&lt;int&gt; v1;               // 空 vectorstd::vector&lt;int&gt; v2(10, 5);        // 10 个元素，每个都是 5std::vector&lt;int&gt; v3 = &#123;1, 2, 3&#125;;   // 初始化列表 (C++11)std::vector&lt;int&gt; v4(v3);           // 拷贝构造 添加与删除  push_back(val)：在末尾添加元素。 p...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/show/44873217_p0_master1200.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Asul1n</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">23</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/你的用户名" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:yourname@email.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的数字花园！这里记录了我的思考与技术笔记。</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/23/%E8%AE%A1%E7%BD%91/%E5%B9%BF%E5%9F%9F%E6%97%A0%E7%BA%BF%E6%8E%A5%E5%85%A5%20(Wide-Area%20Wireless)/" title="无标题">无标题</a><time datetime="2026-04-23T04:15:16.962Z" title="发表于 2026-04-23 12:15:16">2026-04-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/23/%E8%AE%A1%E7%BD%91/%E4%BC%81%E4%B8%9A%EF%BC%8C%E6%A0%A1%E5%9B%AD%E6%8E%A5%E5%85%A5%20(Enterprise%20Access)/" title="无标题">无标题</a><time datetime="2026-04-23T04:14:57.238Z" title="发表于 2026-04-23 12:14:57">2026-04-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/23/%E8%AE%A1%E7%BD%91/%E5%AE%B6%E5%BA%AD%E6%8E%A5%E5%85%A5%20(Home%20Access)/" title="无标题">无标题</a><time datetime="2026-04-23T04:13:06.667Z" title="发表于 2026-04-23 12:13:06">2026-04-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/23/%E8%AE%A1%E7%BD%91/%E9%80%89%E8%B7%AF%EF%BC%8C%E8%B7%AF%E7%94%B1%20(Routing)/" title="无标题">无标题</a><time datetime="2026-04-23T04:04:50.261Z" title="发表于 2026-04-23 12:04:50">2026-04-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/23/%E8%AE%A1%E7%BD%91/%E8%BD%AC%E5%8F%91%20(Forwarding)/" title="无标题">无标题</a><time datetime="2026-04-23T04:04:25.317Z" title="发表于 2026-04-23 12:04:25">2026-04-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2024 - 2026 By Asul1n</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div><div class="footer_custom_text">Driven by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a> & <a target="_blank" rel="noopener" href="https://butterfly.js.org/">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

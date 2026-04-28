@@ -1,0 +1,689 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>2. DNS 抓包及分析实验 | Hexo</title><meta name="author" content="Asul1n"><meta name="copyright" content="Asul1n"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="在 Ubuntu 中安装 nslookup nslookup 是一个用于查询域名系统（DNS）以获取域名或 IP 地址映射信息的网络管理工具。在基于 Debian 的系统（如 Ubuntu）上，它通常包含在 dnsutils 软件包中。 安装步骤  打开终端 (Terminal)。 更新软件包列表，确保获取最新的软件源信息： 1sudo apt update 安装 dnsutils 软件包，其中包">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2. DNS 抓包及分析实验">
+<meta property="og:url" content="https://asul1n.github.io/2026/04/20/%E8%AE%A1%E7%BD%91/experiment/2.%20DNS%20%E6%8A%93%E5%8C%85%E5%8F%8A%E5%88%86%E6%9E%90%E5%AE%9E%E9%AA%8C/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="在 Ubuntu 中安装 nslookup nslookup 是一个用于查询域名系统（DNS）以获取域名或 IP 地址映射信息的网络管理工具。在基于 Debian 的系统（如 Ubuntu）上，它通常包含在 dnsutils 软件包中。 安装步骤  打开终端 (Terminal)。 更新软件包列表，确保获取最新的软件源信息： 1sudo apt update 安装 dnsutils 软件包，其中包">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://asul1n.github.io/images/show/44873217_p0_master1200.jpg">
+<meta property="article:published_time" content="2026-04-19T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-21T07:34:45.696Z">
+<meta property="article:author" content="Asul1n">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://asul1n.github.io/images/show/44873217_p0_master1200.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "2. DNS 抓包及分析实验",
+  "url": "https://asul1n.github.io/2026/04/20/%E8%AE%A1%E7%BD%91/experiment/2.%20DNS%20%E6%8A%93%E5%8C%85%E5%8F%8A%E5%88%86%E6%9E%90%E5%AE%9E%E9%AA%8C/",
+  "image": "https://asul1n.github.io/images/show/44873217_p0_master1200.jpg",
+  "datePublished": "2026-04-19T16:00:00.000Z",
+  "dateModified": "2026-04-21T07:34:45.696Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Asul1n",
+      "url": "https://github.com/Asul1n"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://asul1n.github.io/2026/04/20/%E8%AE%A1%E7%BD%91/experiment/2.%20DNS%20%E6%8A%93%E5%8C%85%E5%8F%8A%E5%88%86%E6%9E%90%E5%AE%9E%E9%AA%8C/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '2. DNS 抓包及分析实验',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/images/show/44873217_p0_master1200.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">23</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/show/44873217_p0_master1200.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Hexo</span></a><a class="nav-page-title" href="/"><span class="site-name">2. DNS 抓包及分析实验</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">2. DNS 抓包及分析实验</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-19T16:00:00.000Z" title="发表于 2026-04-20 00:00:00">2026-04-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-04-21T07:34:45.696Z" title="更新于 2026-04-21 15:34:45">2026-04-21</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h3 id="在-ubuntu-中安装-nslookup">在 Ubuntu 中安装 nslookup</h3>
+<p><code>nslookup</code> 是一个用于查询域名系统（DNS）以获取域名或 IP 地址映射信息的网络管理工具。在基于 Debian 的系统（如 Ubuntu）上，它通常包含在 <code>dnsutils</code> 软件包中。</p>
+<h4 id="安装步骤">安装步骤</h4>
+<ol type="1">
+<li><p><strong>打开终端</strong> (Terminal)。</p></li>
+<li><p><strong>更新软件包列表</strong>，确保获取最新的软件源信息：</p>
+<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt update</span><br></pre></td></tr></table></figure></p></li>
+<li><p><strong>安装 <code>dnsutils</code> 软件包</strong>，其中包含了 <code>nslookup</code>、<code>dig</code> 等工具：</p>
+<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt install dnsutils</span><br></pre></td></tr></table></figure></p></li>
+<li><p><strong>验证安装</strong>：安装完成后，您可以通过以下命令验证 <code>nslookup</code> 是否可用：</p>
+<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">nslookup -version</span><br><span class="line"><span class="comment"># 或者直接运行 nslookup 进入交互模式</span></span><br><span class="line">nslookup</span><br></pre></td></tr></table></figure></p></li>
+</ol>
+<h4 id="说明">说明</h4>
+<ul>
+<li><code>dnsutils</code> 软件包提供了完整的 DNS 故障排除工具集。</li>
+<li>安装过程需要管理员权限，因此使用 <code>sudo</code> 命令。</li>
+<li>安装后，您可以在终端直接使用 <code>nslookup</code> 命令进行 DNS 查询。</li>
+</ul>
+<table>
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>服务器类型</strong></th>
+<th><strong>角色说明</strong></th>
+<th><strong>举例</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Root DNS Server</strong></td>
+<td><strong>根服务器</strong>：知道所有 TLD 服务器（如 .com, .cn）在哪。</td>
+<td><code>198.41.0.4</code> (a.root-servers.net)</td>
+</tr>
+<tr class="even">
+<td><strong>TLD DNS Server</strong></td>
+<td><strong>顶级域名服务器</strong>：管理特定后缀，知道具体的域名（如 https://www.google.com/search?q=google.com）在哪。</td>
+<td>管理 <code>.com</code> 的服务器</td>
+</tr>
+<tr class="odd">
+<td><strong>Authoritative Server</strong></td>
+<td><strong>权威服务器</strong>：最终 Boss。由域名持有者维护，拥有该域名的正式记录。</td>
+<td>阿里云、Cloudflare 的 DNS 节点</td>
+</tr>
+<tr class="even">
+<td><strong>Intermediate Server</strong></td>
+<td><strong>中间/递归服务器</strong>：通常指你的本地 DNS 或公共 DNS（如 8.8.8.8）。</td>
+<td>你的校园网 DNS</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/20260420223502213.png" alt><figcaption>image.png</figcaption>
+</figure>
+<h3 id="查询的中转站-server-address">1. 查询的“中转站” (Server &amp; Address)</h3>
+<p>Plaintext</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Server:         127.0.0.53</span><br><span class="line">Address:        127.0.0.53#53</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p><strong>解析：</strong> 这是你的 <strong>Ubuntu 系统本地解析器</strong>。正如我之前提到的，Ubuntu 使用 <code>systemd-resolved</code> 服务，它会在本地 <code>127.0.0.53</code> 监听 DNS 请求。<code>#53</code> 表示使用的是标准 DNS 端口 53。</p></li>
+<li><p><strong>潜台词：</strong> 你并不是直接在问 MIT 的服务器，而是问了你电脑里的一个“小管家”，由它去帮你找答案。</p></li>
+</ul>
+<h3 id="回答的性质-non-authoritative-answer">2. 回答的性质 (Non-authoritative answer)</h3>
+<p>Plaintext</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Non-authoritative answer:</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p><strong>解析：</strong> <strong>非权威回答</strong>。</p></li>
+<li><p><strong>原因：</strong> 这意味着该结果来自<strong>缓存</strong>。提供这个答案的服务器（即你的本地解析器或运营商 DNS）并不是 <code>mit.edu</code> 域名的官方管理员。它只是“听说”过这个答案并把它存了下来，直接告诉你。</p></li>
+</ul>
+<h3 id="别名的套娃-canonical-name-cname">3. 别名的“套娃” (Canonical Name / CNAME)</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">www.mit.edu    canonical name = www.mit.edu.edgekey.net.</span><br><span class="line">www.mit.edu.edgekey.net    canonical name = e9566.dscb.akamaiedge.net.</span><br></pre></td></tr></table></figure>
+<p>这是这段结果中最有趣的部分。<strong>CNAME (Canonical Name)</strong> 相当于给域名取了“外号”：</p>
+<ol type="1">
+<li><p>你查 <code>www.mit.edu</code>。</p></li>
+<li><p>DNS 告诉你：“它其实叫 <code>www.mit.edu.edgekey.net</code>。”</p></li>
+<li><p>DNS 又告诉你：“而那个家伙其实叫 <code>e9566.dscb.akamaiedge.net</code>。”</p></li>
+</ol>
+<p><strong>为什么这么麻烦？</strong> 因为 MIT 使用了 <strong>Akamai</strong>（全球最大的 CDN 服务商之一）。通过这种别名跳转，Akamai 就可以根据你（客户端）所在的地理位置，动态地把你引导到离你最近、速度最快的缓存服务器上。</p>
+<h3 id="最终目的地-ip-地址">4. 最终目的地 (IP 地址)</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Name:    e9566.dscb.akamaiedge.net</span><br><span class="line">Address: 23.59.9.193</span><br><span class="line">Address: 2600:1417:4400:696::255e</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p><strong>IPv4 地址：</strong> <code>23.59.9.193</code>。这就是 Akamai 分配给你的、离你（或者说离你的 DNS 服务器）比较近的一个服务器节点的地址。</p></li>
+<li><p><strong>IPv6 地址：</strong> 后面那些带冒号的长字符串（如 <code>2600:1417...</code>）。这说明 MIT 的网站已经支持了 IPv6 访问。</p></li>
+</ul>
+<h2 id="question">Question</h2>
+<h3 id="run-nslookup-to-obtain-the-ip-address-of-a-web-server-in-asia.-what-is-the-ip-address-of-that-server">1. Run nslookup to obtain the IP address of a Web server in Asia. What is the IP address of that server?</h3>
+<ul>
+<li>运行 <code>nslookup</code> 命令，获取一个位于亚洲的 Web 服务器的 IP 地址。该服务器的 IP 地址是多少？</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">(base) asuka@asuka-Legion-Y7000P-IRX9:~$ nslookup www.zju.edu.cn</span><br><span class="line">Server:		127.0.0.53</span><br><span class="line">Address:	127.0.0.53#53</span><br><span class="line"></span><br><span class="line">Non-authoritative answer:</span><br><span class="line">www.zju.edu.cn	canonical name = www.zju.edu.cn.w.cdngslb.com.</span><br><span class="line">www.zju.edu.cn.w.cdngslb.com	canonical name = www.zju.edu.cn.queniusa.com.</span><br><span class="line">www.zju.edu.cn.queniusa.com	canonical name = www.zju.edu.cn.w.cdngslb.com.v3.so666gslb.com.</span><br><span class="line">Name:	www.zju.edu.cn.w.cdngslb.com.v3.so666gslb.com</span><br><span class="line">Address: 111.32.202.196</span><br><span class="line">Name:	www.zju.edu.cn.w.cdngslb.com.v3.so666gslb.com</span><br><span class="line">Address: 111.32.202.198</span><br><span class="line">Name:	www.zju.edu.cn.w.cdngslb.com.v3.so666gslb.com</span><br><span class="line">Address: 111.32.202.233</span><br><span class="line">Name:	www.zju.edu.cn.w.cdngslb.com.v3.so666gslb.com</span><br><span class="line">Address: 111.32.202.231</span><br><span class="line">Name:	www.zju.edu.cn.w.cdngslb.com.v3.so666gslb.com</span><br><span class="line">Address: 111.32.202.197</span><br><span class="line">Name:	www.zju.edu.cn.w.cdngslb.com.v3.so666gslb.com</span><br><span class="line">Address: 111.32.202.230</span><br><span class="line">Name:	www.zju.edu.cn.w.cdngslb.com.v3.so666gslb.com</span><br><span class="line">Address: 111.32.202.228</span><br><span class="line">Name:	www.zju.edu.cn.w.cdngslb.com.v3.so666gslb.com</span><br><span class="line">Address: 111.32.202.229</span><br><span class="line">Name:	www.zju.edu.cn.w.cdngslb.com.v3.so666gslb.com</span><br><span class="line">Address: 2409:8c02:21c:a3:3::19</span><br><span class="line">Name:	www.zju.edu.cn.w.cdngslb.com.v3.so666gslb.com</span><br><span class="line">Address: 2409:8c02:21c:a3:3::18</span><br><span class="line">Name:	www.zju.edu.cn.w.cdngslb.com.v3.so666gslb.com</span><br><span class="line">Address: 2409:8c02:218:203:3::1e</span><br><span class="line">Name:	www.zju.edu.cn.w.cdngslb.com.v3.so666gslb.com</span><br><span class="line">Address: 2409:8c02:218:203:3::1f</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><code>www.zju.edu.cn</code> 后面跟了一串很长的“套娃”–别名 (Canonical Name)：</p>
+<ol type="1">
+<li><p><code>www.zju.edu.cn</code> -&gt; <code>...w.cdngslb.com</code></p></li>
+<li><p><code>...w.cdngslb.com</code> -&gt; <code>...queniusa.com</code></p></li>
+<li><p><code>...queniusa.com</code> -&gt; <code>...v3.so666gslb.com</code></p></li>
+</ol>
+<p>这说明浙大官网使用了<strong>全局服务器负载均衡 (GSLB)</strong> 和 <strong>CDN 加速</strong>。</p>
+<ul>
+<li><p><code>gslb</code>（Global Server Load Balancing）：这是为了确保全国各地的同学访问官网时，系统能根据你的位置，把你分配到响应最快的节点。</p></li>
+<li><p><code>so666gslb.com</code> 可能是学校合作的特定加速服务商的域名。</p></li>
+</ul>
+<h4 id="ipv4-internet-protocol-version-4">1. IPv4 (Internet Protocol version 4)</h4>
+<p>IPv4 是我们最熟悉的格式，采用<strong>点分十进制</strong>表示法。</p>
+<ul>
+<li><p><strong>结构：</strong> 总共 <strong>32 位 (bit)</strong>，分为 <strong>4 个字节 (Octets)</strong>。</p></li>
+<li><p><strong>格式规定：</strong></p>
+<ul>
+<li><p>由 4 个 0 到 255 之间的数字组成。</p></li>
+<li><p>中间用三个<strong>点 (<code>.</code>)</strong> 隔开。</p></li>
+</ul></li>
+<li><p><strong>范围：</strong> 0.0.0.0 到 255.255.255.255。</p></li>
+<li><p><strong>例子：</strong> 你的结果 <code>111.32.202.196</code>。</p>
+<ul>
+<li>每个数字其实代表 8 位二进制。比如 <code>111</code> 对应二进制 <code>01101111</code>。</li>
+</ul></li>
+</ul>
+<h4 id="ipv6-internet-protocol-version-6">2. IPv6 (Internet Protocol version 6)</h4>
+<p>由于 IPv4 地址快用光了，IPv6 采用了更庞大的<strong>冒号分十六进制</strong>表示法。</p>
+<ul>
+<li><p><strong>结构：</strong> 总共 <strong>128 位 (bit)</strong>，分为 <strong>8 组</strong>。</p></li>
+<li><p><strong>格式规定：</strong></p>
+<ul>
+<li><p>每组由 4 个<strong>十六进制数</strong>（0-9, a-f）组成。</p></li>
+<li><p>中间用<strong>冒号 (<code>:</code>)</strong> 隔开。</p></li>
+</ul></li>
+<li><p><strong>范围：</strong> 非常巨大，理论上可以给地球上的每一粒沙子分配一个 IP。</p></li>
+<li><p><strong>例子：</strong> <code>2409:8c02:21c:a3:3::19</code>。</p></li>
+</ul>
+<p>查询结果里的 <code>::</code> 就是 IPv6 的缩写技巧，这在实验报告里经常被考到：</p>
+<ol type="1">
+<li><p><strong>省略前导零：</strong> 每组开头的 <code>0</code> 可以省略。</p>
+<ul>
+<li>例如：<code>0003</code> 可以写成 <code>3</code>。这就是为什么你查到的地址里有 <code>:a3:3:</code> 这样的部分。</li>
+</ul></li>
+<li><p><strong>双冒号 (<code>::</code>) 压缩：</strong> 如果连续几组都是 <code>0000</code>，可以用一个 <code>::</code> 代替。</p>
+<ul>
+<li><p><strong>硬性规定：</strong> 在一个地址中，<code>::</code> <strong>只能出现一次</strong>（否则电脑不知道中间到底缺了几组零）。</p></li>
+<li><p><strong>还原：</strong> 你的地址 <code>...:3::19</code>。因为总共有 8 组，现在能看到的只有 6 组，说明 <code>::</code> 代表了中间有两个连续的 <code>0000:0000</code>。</p></li>
+</ul></li>
+</ol>
+<h3 id="run-nslookup-to-determine-the-authoritative-dns-servers-for-a-university-in-europe.">2. Run nslookup to determine the authoritative DNS servers for a university in Europe.</h3>
+<ul>
+<li>找出一家<strong>欧洲大学</strong>的<strong>权威 DNS 服务器（Authoritative DNS Servers）</strong></li>
+</ul>
+<h4 id="使用交互模式更清晰">使用交互模式（更清晰）</h4>
+<ol type="1">
+<li><p>在终端输入 <code>nslookup</code> 进入交互模式。</p></li>
+<li><p>输入 <code>set type=NS</code>（告诉工具你要查的是名称服务器，而不是 IP）。</p></li>
+<li><p>输入大学域名，例如 <code>ox.ac.uk</code>。</p></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">(base) asuka@asuka-Legion-Y7000P-IRX9:~$ nslookup</span><br><span class="line"><span class="meta prompt_">&gt; </span><span class="language-bash"><span class="built_in">set</span> <span class="built_in">type</span>=NS</span></span><br><span class="line"><span class="meta prompt_">&gt; </span><span class="language-bash">ox.ac.uk</span></span><br><span class="line">Server:		127.0.0.53</span><br><span class="line">Address:	127.0.0.53#53</span><br><span class="line"></span><br><span class="line">Non-authoritative answer:</span><br><span class="line">ox.ac.uk	nameserver = auth4.dns.ox.ac.uk.</span><br><span class="line">ox.ac.uk	nameserver = dns2.ox.ac.uk.</span><br><span class="line">ox.ac.uk	nameserver = auth5.dns.ox.ac.uk.</span><br><span class="line">ox.ac.uk	nameserver = dns1.ox.ac.uk.</span><br><span class="line">ox.ac.uk	nameserver = auth6.dns.ox.ac.uk.</span><br><span class="line">ox.ac.uk	nameserver = dns0.ox.ac.uk.</span><br><span class="line"></span><br><span class="line">Authoritative answers can be found from:</span><br><span class="line"><span class="meta prompt_">&gt; </span><span class="language-bash"></span></span><br><span class="line"><span class="language-bash"></span></span><br></pre></td></tr></table></figure>
+<h4 id="结果解析">结果解析</h4>
+<ul>
+<li><p><strong>权威服务器名单：</strong> 牛津大学配置了 6 台服务器来负责 DNS 解析：</p>
+<ul>
+<li><p><code>dns0.ox.ac.uk</code> 到 <code>dns2.ox.ac.uk</code></p></li>
+<li><p><code>auth4.dns.ox.ac.uk</code> 到 <code>auth6.dns.ox.ac.uk</code></p></li>
+</ul></li>
+<li><p><strong>命名规范：</strong> 注意到它们分成了 <code>dns</code> 和 <code>auth.dns</code> 两组，这通常意味着学校在内部管理和外部公开查询上做了某种架构上的隔离（比如负载均衡或主从备份）。</p></li>
+</ul>
+<h4 id="为什么这里还是显示-non-authoritative-answer">为什么这里还是显示 “Non-authoritative answer”？</h4>
+<p>这是一个很多同学会混淆的点：<strong>为什么我查的是 NS 记录（权威服务器），结果还是“非权威回答”？</strong></p>
+<ul>
+<li><p><strong>原因：</strong> 因为你刚才问的是 <code>127.0.0.53</code>（你的本地缓存管家）。</p></li>
+<li><p><strong>逻辑：</strong> 本地管家说：“哦，你想知道牛津的权威服务器是谁啊？我之前刚好帮别人查过，我直接从我的<strong>缓存</strong>里把这几个名字告诉你吧。”</p></li>
+<li><p><strong>结论：</strong> 只要是从缓存里拿出来的，哪怕内容是“谁是权威”，这个<strong>动作</strong>本身依然是非权威的。</p></li>
+</ul>
+<h3 id="run-nslookup-so-that-one-of-the-dns-servers-obtained-in-question-2-is-queried-for-the-mail-servers-for-yahoo-mail.-what-is-its-ip-address">3. Run nslookup so that one of the DNS servers obtained in Question 2 is queried for the mail servers for Yahoo! mail. What is its IP address?</h3>
+<ul>
+<li>利用你在上一个任务中找到的某一台牛津大学的 DNS 服务器，去问它“Yahoo! 邮箱的邮件服务器（Mail Server）是谁</li>
+</ul>
+<p><strong>第一步：切换查询目标</strong>：在 <code>&gt;</code> 提示符下，输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">server dns0.ox.ac.uk</span><br></pre></td></tr></table></figure>
+<p><em>这行命令告诉 nslookup：接下来的问题不要问 <code>127.0.0.53</code> 了，去问牛津的这台服务器。</em></p>
+<p><strong>第二步：设置查询类型为邮件服务器</strong>：输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set type=MX</span><br></pre></td></tr></table></figure>
+<p><em><code>MX</code> 代表 Mail Exchanger（邮件交换记录），专门用来寻找负责接收邮件的服务器。</em></p>
+<p><strong>第三步：查询 Yahoo! 域名</strong>：输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yahoo.com</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">&gt; </span><span class="language-bash">server dns0.ox.ac.uk</span></span><br><span class="line">Default server: dns0.ox.ac.uk</span><br><span class="line">Address: 129.67.1.190#53</span><br><span class="line"><span class="meta prompt_">&gt; </span><span class="language-bash"><span class="built_in">set</span> <span class="built_in">type</span>=MX</span></span><br><span class="line"><span class="meta prompt_">&gt; </span><span class="language-bash">yahoo.com</span></span><br><span class="line">;; communications error to 129.67.1.190#53: timed out</span><br><span class="line">Server:		dns0.ox.ac.uk</span><br><span class="line">Address:	129.67.1.190#53</span><br><span class="line"></span><br><span class="line">** server can&#x27;t find yahoo.com: REFUSED</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>权威 DNS 服务器（Authoritative Name Server）通常不兼职做递归解析器（Recursive Resolver）。</p>
+<ul>
+<li><p><strong>递归查询限制（Recursion Restriction）：</strong> 大多数机构（如大学、公司）的权威 DNS 服务器为了安全和节省资源，只为<strong>自家校园网内部用户</strong>提供递归查询（帮你查外部网站如 Yahoo）。对于来自校外（比如你所在的网络）的请求，它只负责回答关于 <code>ox.ac.uk</code> 的问题。如果你问它 <code>yahoo.com</code>，它会觉得“这不归我管，我也没义务帮你去问别人”，所以直接返回 <strong>REFUSED</strong>。</p></li>
+<li><p><strong>防火墙拦截（Firewall/ACL）：</strong> <code>timed out</code> 提示说明你的查询包可能直接被对方的防火墙拦截了。</p></li>
+</ul>
+<h3 id="使用-wireshark-捕获-web-访问-dns-流量">使用 Wireshark 捕获 Web 访问 DNS 流量</h3>
+<h4 id="第一阶段实验环境清理环境初始化">第一阶段：实验环境清理（环境初始化）</h4>
+<p>在抓包前，必须确保电脑不会直接从本地缓存读取记录，否则 Wireshark 抓不到任何 DNS 包。</p>
+<ol type="1">
+<li><p><strong>清理系统 DNS 缓存 (Ubuntu)：</strong> 打开终端，执行以下命令：</p>
+<p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo resolvectl flush-caches</span><br></pre></td></tr></table></figure></p></li>
+<li><p><strong>清理浏览器缓存：</strong></p>
+<ul>
+<li><p><strong>推荐做法：</strong> 开启浏览器的 <strong>“无痕/隐身模式” (Incognito)</strong>。这种模式下浏览器通常不会读取旧的 DNS 缓存。</p></li>
+<li><p><strong>手动清理：</strong> 如果是 Chrome/Edge，进入 <code>设置 -&gt; 隐私和安全 -&gt; 清除浏览数据</code>。</p></li>
+</ul></li>
+</ol>
+<h4 id="第二阶段wireshark-准备流量监控">第二阶段：Wireshark 准备（流量监控）</h4>
+<p>现代 Linux 替代 <code>ifconfig</code> 的标准工具，可以使用这个参数，它只显示网络接口的基本信息：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ip -br addr</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>-br</code> 代表 <strong>brief</strong>（简要），会以表格形式列出网卡名称和对应的 IP。</li>
+</ul>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/20260421000156641.png" alt><figcaption>image.png</figcaption>
+</figure>
+<ul>
+<li><p><strong><code>enp7s0</code> (有线网卡):</strong></p>
+<ul>
+<li><p><strong>IPv4 地址:</strong> <code>10.150.201.249</code></p></li>
+<li><p><strong>分析:</strong> 这是一个典型的校园网或大机构内部局域网 IP。</p></li>
+</ul></li>
+<li><p><strong><code>wlp8s0</code> (无线网卡/Wi-Fi):</strong></p>
+<ul>
+<li><p><strong>IPv4 地址:</strong> <code>192.168.5.183</code></p></li>
+<li><p><strong>分析:</strong> 这是一个典型的家用路由器或移动热点分配的局域网 IP</p></li>
+</ul></li>
+</ul>
+<p>你需要告诉 Wireshark “盯死”哪一部分数据流。</p>
+<ol type="1">
+<li><p><strong>选择网卡：</strong> 打开 Wireshark，在启动界面选择有波动频率的网卡：</p>
+<ul>
+<li><p>如果是 Wi-Fi，选择 <strong><code>wlp8s0</code></strong>。</p></li>
+<li><p>如果是网线，选择 <strong><code>enp7s0</code></strong>。</p></li>
+</ul></li>
+<li><p><strong>设置过滤器 (Display Filter)：</strong> 在顶部的过滤栏输入以下规则，排除无关流量：</p>
+<p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dns and ip.addr == 192.168.5.183</span><br></pre></td></tr></table></figure></p>
+<p><em>(注：这里使用你之前查到的具体 IP。加上 <code>dns</code> 关键字能让你在抓包时只看到 DNS 请求和响应。)</em></p></li>
+<li><p><strong>开始运行：</strong> 点击左上角的 <strong>蓝色鲨鱼鳍按钮</strong> 开始实时捕获。</p></li>
+</ol>
+<h4 id="第三阶段触发流量与停止">第三阶段：触发流量与停止</h4>
+<ol type="1">
+<li><p><strong>执行访问：</strong> 在浏览器中输入目标网址：<code>http://www.hdu.edu.cn</code></p></li>
+<li><p><strong>验证响应：</strong> 确认网页已成功加载。</p></li>
+<li><p><strong>停止抓包：</strong> 回到 Wireshark，点击左上角的 <strong>红色方形按钮</strong>。</p></li>
+</ol>
+<h4 id="第四阶段实验报告核心观察点-checklist">第四阶段：实验报告核心观察点 (Checklist)</h4>
+<p>当你停止抓包后，请务必在列表中确认以下两个关键数据包：</p>
+<ul>
+<li><p><strong>标准查询包 (Standard query)</strong>：</p>
+<ul>
+<li><p><strong>源地址</strong>：你的 IP (<code>192.168.5.183</code>)</p></li>
+<li><p><strong>目的地址</strong>：DNS 服务器 IP (通常是 <code>127.0.0.53</code> 或路由器 IP)</p></li>
+<li><p><strong>关键内容</strong>：<code>Queries</code> 部分应包含 <code>Name: www.hdu.edu.cn</code>。</p></li>
+</ul></li>
+<li><p><strong>标准查询响应包 (Standard query response)</strong>：</p>
+<ul>
+<li><strong>关键内容</strong>：<code>Answers</code> 部分应包含该域名对应的 IP 地址列表和 <strong>TTL</strong> 值。</li>
+</ul></li>
+</ul>
+<h3 id="locate-the-dns-query-and-response-messages.-are-then-sent-over-udp-or-tcp">4. Locate the DNS query and response messages. Are then sent over UDP or TCP?</h3>
+<ul>
+<li>定位 DNS 查询和响应消息。它们是通过 UDP 还是 TCP 发送的？</li>
+</ul>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/20260421001307686.png" alt><figcaption>image.png</figcaption>
+</figure>
+<p>可见是通过 UDP 发送的。</p>
+<p>DNS 协议设计之初就优先考虑了<strong>速度</strong>和<strong>开销</strong>。</p>
+<ul>
+<li><p><strong>低延迟：</strong> UDP 是无连接的，不需要像 TCP 那样进行“三次握手”。对于像“查个地址”这样的小型往返任务，UDP 快得多。</p></li>
+<li><p><strong>报文小：</strong> 传统的 DNS 查询和响应通常小于 512 字节，UDP 足以容纳。</p></li>
+<li><p><strong>服务器负担：</strong> DNS 服务器每秒要处理海量请求，如果每个请求都要维持一个 TCP 连接，服务器的资源会迅速枯竭。</p></li>
+</ul>
+<h3 id="what-is-the-destination-port-for-the-dns-query-message-what-is-the-source-port-of-dns-response-message">5. What is the destination port for the DNS query message? What is the source port of DNS response message?</h3>
+<ul>
+<li>DNS 查询消息的目标端口是多少？DNS 响应消息的源端口是多少？</li>
+</ul>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/20260421001544438.png" alt><figcaption>image.png</figcaption>
+</figure>
+<h4 id="真正的目标访问-www.hdu.edu.cn">1. 真正的目标：访问 <code>www.hdu.edu.cn</code></h4>
+<p>看报文列表的最下方（No. 2946 - 2955）：</p>
+<ul>
+<li><p><strong>No. 2946</strong>: 你的电脑 (<code>10.150.201.249</code>) 向 DNS 服务器 (<code>210.32.32.1</code>) 发起查询。</p>
+<ul>
+<li><p>注意 <code>Info</code> 栏：<code>Standard query ... HTTPS www.hdu.edu.cn</code>。</p></li>
+<li><p><strong>知识点</strong>：现代浏览器不仅查 <code>A</code> 记录，还会查 <code>HTTPS</code> 类型记录来确认是否支持加密连接。</p></li>
+</ul></li>
+<li><p><strong>No. 2949</strong>: 服务器的回应。它告诉你的电脑：<code>www.hdu.edu.cn</code> 有一个别名（CNAME）叫 <code>www.split.hdu.edu.cn</code>。</p></li>
+<li><p><strong>No. 2952 &amp; 2955</strong>: 接着你的电脑去查了这个别名，并得到了最终结果。</p></li>
+</ul>
+<h4 id="背景噪音反向解析-ptr-查询">2. 背景噪音：反向解析 (PTR 查询)</h4>
+<p>看报文列表的上半部分（No. 98 - 123）：</p>
+<ul>
+<li><p>你会看到很多 <code>PTR</code> 类型的查询，名字以 <code>.in-addr.arpa</code> 或 <code>.ip6.arpa</code> 结尾。</p></li>
+<li><p><strong>这是什么？</strong> 这种叫 <strong>反向 DNS 查询（Reverse DNS Lookup）</strong>。你的系统在尝试通过 IP 地址去反查对应的“主机名”。</p></li>
+<li><p><strong>结果</strong>：服务器基本都回了 <code>No such name</code>。在实验报告里，这些包通常属于“无关流量”，你可以重点关注底部的 <code>www.hdu.edu.cn</code>。</p></li>
+</ul>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/20260421001922389.png" alt><figcaption>2946-DNS 查询包.png</figcaption>
+</figure>
+<table>
+<thead>
+<tr class="header">
+<th><strong>字段</strong></th>
+<th>2946-DNS 查询包</th>
+<th><strong>讲解</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>源 IP</strong></td>
+<td><code>10.150.201.249</code></td>
+<td>你的 Legion 笔记本 IP</td>
+</tr>
+<tr class="even">
+<td><strong>目的 IP</strong></td>
+<td><code>210.32.32.1</code></td>
+<td>学校配置的递归 DNS 服务器</td>
+</tr>
+<tr class="odd">
+<td><strong>传输层协议</strong></td>
+<td><strong>UDP</strong></td>
+<td>DNS 查询首选 UDP</td>
+</tr>
+<tr class="even">
+<td><strong>目的端口</strong></td>
+<td><strong>53</strong></td>
+<td>DNS 服务的标准全球统一端口</td>
+</tr>
+<tr class="odd">
+<td><strong>源端口</strong></td>
+<td>一个随机大数字</td>
+<td>比如 51727 等，用于接收回传结果</td>
+</tr>
+</tbody>
+</table>
+<h3 id="to-what-ip-address-is-the-dns-query-message-sent-use-ipconfig-to-determine-the-ip-address-of-your-local-dns-server.-are-these-two-ip-addresses-the-same">6. To what IP address is the DNS query message sent? Use ipconfig to determine the IP address of your local DNS server. Are these two IP addresses the same?</h3>
+<ul>
+<li>DNS 查询消息发送到了哪个 IP 地址？使用 <code>ipconfig</code>（在 Linux 中使用相关命令）确定你本地 DNS 服务器的 IP 地址。这两个 IP 地址是否相同？</li>
+</ul>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/20260421124553846.png" alt><figcaption>image.png</figcaption>
+</figure>
+<p>由图可见 DNS 查询消息的目标 IP 地址为：210.32.32.1</p>
+<h4 id="确定本地-dns-服务器地址-ubuntulinux">确定本地 DNS 服务器地址 (Ubuntu/Linux)</h4>
+<p>在 Linux 中，由于我们不使用 <code>ipconfig</code>，你需要查看系统的 DNS 配置。请在终端运行以下命令：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">resolvectl status</span><br></pre></td></tr></table></figure>
+<p>或者查看配置文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /etc/resolv.conf</span><br></pre></td></tr></table></figure>
+<p><strong>解析：</strong></p>
+<ul>
+<li><p>在你的 Ubuntu 系统中，<code>cat /etc/resolv.conf</code> 可能会显示 <code>nameserver 127.0.0.53</code>。这是本地的存根解析器（Stub Resolver）。</p></li>
+<li><p>但是，通过 <code>resolvectl status</code>，你会看到“真正的”上游服务器。根据你的抓包结果，你的上游 DNS 服务器应该是 <strong><code>210.32.32.1</code></strong>。</p></li>
+</ul>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/20260421124957157.png" alt><figcaption>image.png</figcaption>
+</figure>
+<p>由图可见，两个 IP 地址相同。</p>
+<h3 id="examine-the-dns-query-message.-what-type-of-dns-query-is-it-does-the-query-message-contain-any-answers">7. Examine the DNS query message. What “Type” of DNS query is it? Does the query message contain any “answers”?</h3>
+<ul>
+<li>检查 DNS 查询消息。它是哪种“类型”（Type）的 DNS 查询？查询消息中是否包含任何“回答”（Answers）？</li>
+</ul>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/20260421125529964.png" alt><figcaption>image.png</figcaption>
+</figure>
+<ul>
+<li><strong>Answer RRs: 0</strong>：<strong>回答部分为空</strong>。查询包是不带回答的。</li>
+<li>查询类型是 <strong>HTTPS</strong> (Type 65)</li>
+</ul>
+<h3 id="examine-the-dns-response-message.-how-many-answers-are-provided-what-do-each-of-these-answers-contain">8. Examine the DNS response message. How many “answers” are provided? What do each of these answers contain?</h3>
+<ul>
+<li>检查 DNS 响应消息（Response）。提供了多少个“回答”（Answers）？每一个回答中都包含什么内容？</li>
+</ul>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/20260421130254636.png" alt><figcaption>image.png</figcaption>
+</figure>
+<h3 id="consider-the-subsequent-tcp-syn-packet-sent-by-your-host.-does-the-destination-ip-address-of-the-syn-packet-correspond-to-any-of-the-ip-addresses-provided-in-the-dns-response-message">9. Consider the subsequent TCP SYN packet sent by your host. Does the destination IP address of the SYN packet correspond to any of the IP addresses provided in the DNS response message?</h3>
+<ul>
+<li>观察随后由你主机发送的 TCP SYN 报文。该 SYN 报文的目标 IP 地址是否与 DNS 响应消息中提供的任何一个 IP 地址相对应？</li>
+</ul>
+<h3 id="what-is-the-destination-port-for-the-dns-query-message-what-is-the-source-port-of-dns-response-message-1">11. What is the destination port for the DNS query message? What is the source port of DNS response message?</h3>
+<ul>
+<li>DNS 查询消息的目标端口是多少？DNS 响应消息的源端口是多少？</li>
+</ul>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/ksnip_20260421-145302.png" alt><figcaption>ksnip_20260421-145302.png</figcaption>
+</figure>
+<h4 id="dns-查询消息-query-以-no.-4006-为例">DNS 查询消息 (Query, 以 No. 4006 为例)</h4>
+<ul>
+<li><p><strong>目的端口 (Destination Port):</strong> <strong>53</strong></p></li>
+<li><p><strong>分析：</strong> 所有的 DNS 查询请求都会发送到服务器的 53 端口，这是全球统一的标准。你的笔记本从随机高位端口（如 51727 等）发出请求，目标指向服务器的 53 端口。</p></li>
+</ul>
+<h4 id="dns-响应消息-response-以-no.-4007-为例">DNS 响应消息 (Response, 以 No. 4007 为例)</h4>
+<ul>
+<li><p><strong>源端口 (Source Port):</strong> <strong>53</strong></p></li>
+<li><p><strong>分析：</strong> DNS 服务器在处理完你的请求后，会从它的 53 端口发出回包。对于你的电脑来说，它看到的这个包的“出发地”就是 53 端口。</p></li>
+</ul>
+<h3 id="to-what-ip-address-is-the-dns-query-message-sent-is-this-the-ip-address-of-your-default-local-dns-server">12. To what IP address is the DNS query message sent? Is this the IP address of your default local DNS server?</h3>
+<ul>
+<li>DNS 查询消息发送到了哪个 IP 地址？这是你默认的本地 DNS 服务器的 IP 地址吗？</li>
+</ul>
+<p><strong>查询消息发送的目标 IP (Destination IP)</strong>：<strong><code>210.32.32.1</code></strong>。 <strong>是的</strong>，这个 IP 地址确实是默认的本地 DNS 服务器地址。</p>
+<h3 id="examine-the-dns-query-message.-what-type-of-dns-query-is-it-does-the-query-message-contain-any-answers-1">13. Examine the DNS query message. What “Type” of DNS query is it? Does the query message contain any “answers”?</h3>
+<ul>
+<li>检查 DNS 查询消息。它是哪种“类型”（Type）的 DNS 查询？查询消息中是否包含任何“回答”（Answers）？</li>
+</ul>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/20260421150404657.png" alt><figcaption>image.png</figcaption>
+</figure>
+<p>这是一条 <strong>Type A</strong> 查询。它的目的是请求域名对应的 <strong>IPv4 地址</strong>。 查看 <code>Domain Name System (query)</code> 下方的计数器，<code>Answer RRs: 0</code>，不包含任何答案。</p>
+<h3 id="examine-the-dns-response-message.-how-many-answers-are-provided-what-do-each-of-these-answers-contain-1">14. Examine the DNS response message. How many “answers” are provided? What do each of these answers contain?</h3>
+<ul>
+<li>检查 DNS 响应消息。提供了多少个“回答”（Answers）？每一个回答中都包含什么内容？</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/20260421150658269.png" alt="image.png"> <img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/20260421150719415.png" alt="image.png"></p>
+<p>共有 <strong>3</strong> 个回答。</p>
+<ul>
+<li><p><strong>第一个回答 (CNAME):</strong></p>
+<ul>
+<li><p><strong>Name:</strong> <code>www.mit.edu</code></p></li>
+<li><p><strong>Type:</strong> CNAME (Canonical Name for an alias)</p></li>
+<li><p><strong>Data (CNAME):</strong> 指向了 <code>www.mit.edu.edgekey.net</code>。</p></li>
+<li><p><strong>TTL:</strong> 600 (10 minutes)。</p></li>
+</ul></li>
+<li><p><strong>第二个回答 (CNAME):</strong></p>
+<ul>
+<li><p><strong>Name:</strong> <code>www.mit.edu.edgekey.net</code></p></li>
+<li><p><strong>Type:</strong> CNAME</p></li>
+<li><p><strong>Data (CNAME):</strong> 指向了 <code>e9566.dscb.akamaiedge.net</code>。</p></li>
+<li><p><strong>TTL:</strong> 600 (10 minutes)。</p></li>
+</ul></li>
+<li><p><strong>第三个回答 (Type A):</strong></p>
+<ul>
+<li><p><strong>Name:</strong> <code>e9566.dscb.akamaiedge.net</code></p></li>
+<li><p><strong>Type:</strong> A (Host Address)</p></li>
+<li><p><strong>Data (Address):</strong> 提供了最终的 IPv4 地址 <strong><code>23.59.9.193</code></strong>。</p></li>
+<li><p><strong>TTL:</strong> 600 (10 minutes)。</p></li>
+</ul></li>
+</ul>
+<h3 id="to-what-ip-address-is-the-dns-query-message-sent-is-this-the-ip-address-of-your-default-local-dns-server-1">16. To what IP address is the DNS query message sent? Is this the IP address of your default local DNS server?</h3>
+<ul>
+<li>DNS 查询消息发送到了哪个 IP 地址？这是否为你默认的本地 DNS 服务器的 IP 地址？</li>
+</ul>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/20260421151601520.png" alt><figcaption>image.png</figcaption>
+</figure>
+<h3 id="examine-the-dns-query-message.-what-type-of-dns-query-is-it-does-the-query-message-contain-any-answers-2">17. Examine the DNS query message. What “Type” of DNS query is it? Does the query message contain any “answers”?</h3>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/20260421151917345.png" alt><figcaption>image.png</figcaption>
+</figure>
+<p>类型是 <strong>NS (authoritative Name Server)</strong>，在请求 <code>mit.edu</code> 区域的授权名称服务器列表，而不是具体的 IP 地址。</p>
+<p><strong>不包含</strong>任何回答。</p>
+<h3 id="examine-the-dns-response-message.-what-mit-nameservers-does-the-response-message-provide-does-this-response-message-also-provide-the-ip-addresses-of-the-mit-namesers">18. Examine the DNS response message. What MIT nameservers does the response message provide? Does this response message also provide the IP addresses of the MIT namesers?</h3>
+<ul>
+<li>检查 DNS 响应消息。该响应消息提供了哪些 MIT 名称服务器？该响应消息是否也提供了这些 MIT 名称服务器的 IP 地址？</li>
+</ul>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/20260421153051030.png" alt><figcaption>image.png</figcaption>
+</figure>
+<p>通过观察 <strong>Additional RRs</strong> 字段，我发现其数值为 <strong>0</strong>。这表明 DNS 响应中并未包含 Glue Records（粘合记录）。这意味着主机在获取到名称服务器域名后，若需与其通信，还需额外发起一次 Type A 查询来解析这些服务器的 IP 地址。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/Asul1n">Asul1n</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://asul1n.github.io/2026/04/20/%E8%AE%A1%E7%BD%91/experiment/2.%20DNS%20%E6%8A%93%E5%8C%85%E5%8F%8A%E5%88%86%E6%9E%90%E5%AE%9E%E9%AA%8C/">https://asul1n.github.io/2026/04/20/%E8%AE%A1%E7%BD%91/experiment/2.%20DNS%20%E6%8A%93%E5%8C%85%E5%8F%8A%E5%88%86%E6%9E%90%E5%AE%9E%E9%AA%8C/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://Asul1n.github.io" target="_blank">Hexo</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/images/show/44873217_p0_master1200.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/04/23/crypto/%E5%B7%AE%E5%88%86%E7%BA%BF%E6%80%A7%E5%88%86%E6%9E%90%202/" title="差分线性分析 2"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">差分线性分析 2</div></div><div class="info-2"><div class="info-item-1">差分-线性壳（Differential-Linear Hull） 在密码学分析中，“路径” (Characteristic) 是指特定的、唯一的演化路线；而 “壳” (Hull) 是指所有起点和终点相同、但中间经过不同路线的“路径”的总和。  线性壳 (Linear Hull)： 当我们固定输入掩码 \(λ_I\)​ 和输出掩码 \(λ_O\)​ 时，中间轮次的掩码可以有无数种变化。所有这些变化路径贡献的相关度之和，构成了线性壳。 差分-线性壳 (Differential-Linear Hull)： 同样地，当我们固定前半段的输入差分 \(δ\) 和后半段的输出掩码 \(w\) 时，中间交界处的特征（中间掩码 \(v\)）可以是任何值。所有这些可能的 \(v\) 贡献的偏差总和，就是差分-线性壳。  Blondeau 论文的核心成果是定理 2，它给出了总偏差 \(\mathcal{E}_{\delta,w}\) 的精确计算公式： \[\mathcal{E}_{\delta,w} = \sum_{v \in \mathbb{F}_2^n} \epsilon_{\delta,v} c...</div></div></div></a><a class="pagination-related" href="/2026/04/20/crypto/Ascon/" title="Ascon"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Ascon</div></div><div class="info-2"><div class="info-item-1">初始化 (Initialization)  状态 \(S\) 的构成：  状态 \(S\) 总共是 320 bits。 其结构为：\(S = IV || K || N\)。 注意： 在初始化阶段，状态 \(S\) 中不包含明文、密文或关联数据。  初始化向量 IV 的介绍：  IV 总共占 64 bits。 Ascon 的参数为：\(k=128, r=64, a=12, b=6\)。 IV 的计算公式为：\(IV = k || r || a || b || 0^{288-2}\)。 根据 Ascon 版本，IV 的具体值如下：  对于 ASCON-128：\(IV = 80400c0600000000\) 对于 ASCON-128a：\(IV = 80800c0800000000\)   初始状态的进一步处理：  状态 \(S\) 会进行一次变换：\(S = p^a(S) \oplus (0^{320-k} || K)\)。 其中，\(p^a(S)\) 表示对状态 \(S\) 执行 \(a\) 轮置换（具体过程请参考相关文档）。 注意： \(p^a\) 的执行轮次为 \(a=12...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/show/44873217_p0_master1200.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Asul1n</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">23</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/你的用户名" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:yourname@email.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的数字花园！这里记录了我的思考与技术笔记。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8-ubuntu-%E4%B8%AD%E5%AE%89%E8%A3%85-nslookup"><span class="toc-text">在 Ubuntu 中安装 nslookup</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E6%AD%A5%E9%AA%A4"><span class="toc-text">安装步骤</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AF%B4%E6%98%8E"><span class="toc-text">说明</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E8%AF%A2%E7%9A%84%E4%B8%AD%E8%BD%AC%E7%AB%99-server-address"><span class="toc-text">1. 查询的“中转站” (Server &amp; Address)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%9E%E7%AD%94%E7%9A%84%E6%80%A7%E8%B4%A8-non-authoritative-answer"><span class="toc-text">2. 回答的性质 (Non-authoritative answer)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%AB%E5%90%8D%E7%9A%84%E5%A5%97%E5%A8%83-canonical-name-cname"><span class="toc-text">3. 别名的“套娃” (Canonical Name &#x2F; CNAME)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E7%BB%88%E7%9B%AE%E7%9A%84%E5%9C%B0-ip-%E5%9C%B0%E5%9D%80"><span class="toc-text">4. 最终目的地 (IP 地址)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#question"><span class="toc-text">Question</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#run-nslookup-to-obtain-the-ip-address-of-a-web-server-in-asia.-what-is-the-ip-address-of-that-server"><span class="toc-text">1. Run nslookup to obtain the IP address of a Web server in Asia. What is the IP address of that server?</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#ipv4-internet-protocol-version-4"><span class="toc-text">1. IPv4 (Internet Protocol version 4)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ipv6-internet-protocol-version-6"><span class="toc-text">2. IPv6 (Internet Protocol version 6)</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#run-nslookup-to-determine-the-authoritative-dns-servers-for-a-university-in-europe."><span class="toc-text">2. Run nslookup to determine the authoritative DNS servers for a university in Europe.</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E4%BA%A4%E4%BA%92%E6%A8%A1%E5%BC%8F%E6%9B%B4%E6%B8%85%E6%99%B0"><span class="toc-text">使用交互模式（更清晰）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BB%93%E6%9E%9C%E8%A7%A3%E6%9E%90"><span class="toc-text">结果解析</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E9%87%8C%E8%BF%98%E6%98%AF%E6%98%BE%E7%A4%BA-non-authoritative-answer"><span class="toc-text">为什么这里还是显示 “Non-authoritative answer”？</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#run-nslookup-so-that-one-of-the-dns-servers-obtained-in-question-2-is-queried-for-the-mail-servers-for-yahoo-mail.-what-is-its-ip-address"><span class="toc-text">3. Run nslookup so that one of the DNS servers obtained in Question 2 is queried for the mail servers for Yahoo! mail. What is its IP address?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-wireshark-%E6%8D%95%E8%8E%B7-web-%E8%AE%BF%E9%97%AE-dns-%E6%B5%81%E9%87%8F"><span class="toc-text">使用 Wireshark 捕获 Web 访问 DNS 流量</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E9%98%B6%E6%AE%B5%E5%AE%9E%E9%AA%8C%E7%8E%AF%E5%A2%83%E6%B8%85%E7%90%86%E7%8E%AF%E5%A2%83%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-text">第一阶段：实验环境清理（环境初始化）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E9%98%B6%E6%AE%B5wireshark-%E5%87%86%E5%A4%87%E6%B5%81%E9%87%8F%E7%9B%91%E6%8E%A7"><span class="toc-text">第二阶段：Wireshark 准备（流量监控）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E9%98%B6%E6%AE%B5%E8%A7%A6%E5%8F%91%E6%B5%81%E9%87%8F%E4%B8%8E%E5%81%9C%E6%AD%A2"><span class="toc-text">第三阶段：触发流量与停止</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC%E5%9B%9B%E9%98%B6%E6%AE%B5%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A%E6%A0%B8%E5%BF%83%E8%A7%82%E5%AF%9F%E7%82%B9-checklist"><span class="toc-text">第四阶段：实验报告核心观察点 (Checklist)</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#locate-the-dns-query-and-response-messages.-are-then-sent-over-udp-or-tcp"><span class="toc-text">4. Locate the DNS query and response messages. Are then sent over UDP or TCP?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#what-is-the-destination-port-for-the-dns-query-message-what-is-the-source-port-of-dns-response-message"><span class="toc-text">5. What is the destination port for the DNS query message? What is the source port of DNS response message?</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9C%9F%E6%AD%A3%E7%9A%84%E7%9B%AE%E6%A0%87%E8%AE%BF%E9%97%AE-www.hdu.edu.cn"><span class="toc-text">1. 真正的目标：访问 www.hdu.edu.cn</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%E5%99%AA%E9%9F%B3%E5%8F%8D%E5%90%91%E8%A7%A3%E6%9E%90-ptr-%E6%9F%A5%E8%AF%A2"><span class="toc-text">2. 背景噪音：反向解析 (PTR 查询)</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#to-what-ip-address-is-the-dns-query-message-sent-use-ipconfig-to-determine-the-ip-address-of-your-local-dns-server.-are-these-two-ip-addresses-the-same"><span class="toc-text">6. To what IP address is the DNS query message sent? Use ipconfig to determine the IP address of your local DNS server. Are these two IP addresses the same?</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A1%AE%E5%AE%9A%E6%9C%AC%E5%9C%B0-dns-%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%9C%B0%E5%9D%80-ubuntulinux"><span class="toc-text">确定本地 DNS 服务器地址 (Ubuntu&#x2F;Linux)</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#examine-the-dns-query-message.-what-type-of-dns-query-is-it-does-the-query-message-contain-any-answers"><span class="toc-text">7. Examine the DNS query message. What “Type” of DNS query is it? Does the query message contain any “answers”?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#examine-the-dns-response-message.-how-many-answers-are-provided-what-do-each-of-these-answers-contain"><span class="toc-text">8. Examine the DNS response message. How many “answers” are provided? What do each of these answers contain?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#consider-the-subsequent-tcp-syn-packet-sent-by-your-host.-does-the-destination-ip-address-of-the-syn-packet-correspond-to-any-of-the-ip-addresses-provided-in-the-dns-response-message"><span class="toc-text">9. Consider the subsequent TCP SYN packet sent by your host. Does the destination IP address of the SYN packet correspond to any of the IP addresses provided in the DNS response message?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#what-is-the-destination-port-for-the-dns-query-message-what-is-the-source-port-of-dns-response-message-1"><span class="toc-text">11. What is the destination port for the DNS query message? What is the source port of DNS response message?</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#dns-%E6%9F%A5%E8%AF%A2%E6%B6%88%E6%81%AF-query-%E4%BB%A5-no.-4006-%E4%B8%BA%E4%BE%8B"><span class="toc-text">DNS 查询消息 (Query, 以 No. 4006 为例)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#dns-%E5%93%8D%E5%BA%94%E6%B6%88%E6%81%AF-response-%E4%BB%A5-no.-4007-%E4%B8%BA%E4%BE%8B"><span class="toc-text">DNS 响应消息 (Response, 以 No. 4007 为例)</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#to-what-ip-address-is-the-dns-query-message-sent-is-this-the-ip-address-of-your-default-local-dns-server"><span class="toc-text">12. To what IP address is the DNS query message sent? Is this the IP address of your default local DNS server?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#examine-the-dns-query-message.-what-type-of-dns-query-is-it-does-the-query-message-contain-any-answers-1"><span class="toc-text">13. Examine the DNS query message. What “Type” of DNS query is it? Does the query message contain any “answers”?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#examine-the-dns-response-message.-how-many-answers-are-provided-what-do-each-of-these-answers-contain-1"><span class="toc-text">14. Examine the DNS response message. How many “answers” are provided? What do each of these answers contain?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#to-what-ip-address-is-the-dns-query-message-sent-is-this-the-ip-address-of-your-default-local-dns-server-1"><span class="toc-text">16. To what IP address is the DNS query message sent? Is this the IP address of your default local DNS server?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#examine-the-dns-query-message.-what-type-of-dns-query-is-it-does-the-query-message-contain-any-answers-2"><span class="toc-text">17. Examine the DNS query message. What “Type” of DNS query is it? Does the query message contain any “answers”?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#examine-the-dns-response-message.-what-mit-nameservers-does-the-response-message-provide-does-this-response-message-also-provide-the-ip-addresses-of-the-mit-namesers"><span class="toc-text">18. Examine the DNS response message. What MIT nameservers does the response message provide? Does this response message also provide the IP addresses of the MIT namesers?</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/23/%E8%AE%A1%E7%BD%91/%E5%B9%BF%E5%9F%9F%E6%97%A0%E7%BA%BF%E6%8E%A5%E5%85%A5%20(Wide-Area%20Wireless)/" title="无标题">无标题</a><time datetime="2026-04-23T04:15:16.962Z" title="发表于 2026-04-23 12:15:16">2026-04-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/23/%E8%AE%A1%E7%BD%91/%E4%BC%81%E4%B8%9A%EF%BC%8C%E6%A0%A1%E5%9B%AD%E6%8E%A5%E5%85%A5%20(Enterprise%20Access)/" title="无标题">无标题</a><time datetime="2026-04-23T04:14:57.238Z" title="发表于 2026-04-23 12:14:57">2026-04-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/23/%E8%AE%A1%E7%BD%91/%E5%AE%B6%E5%BA%AD%E6%8E%A5%E5%85%A5%20(Home%20Access)/" title="无标题">无标题</a><time datetime="2026-04-23T04:13:06.667Z" title="发表于 2026-04-23 12:13:06">2026-04-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/23/%E8%AE%A1%E7%BD%91/%E9%80%89%E8%B7%AF%EF%BC%8C%E8%B7%AF%E7%94%B1%20(Routing)/" title="无标题">无标题</a><time datetime="2026-04-23T04:04:50.261Z" title="发表于 2026-04-23 12:04:50">2026-04-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/23/%E8%AE%A1%E7%BD%91/%E8%BD%AC%E5%8F%91%20(Forwarding)/" title="无标题">无标题</a><time datetime="2026-04-23T04:04:25.317Z" title="发表于 2026-04-23 12:04:25">2026-04-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2024 - 2026 By Asul1n</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div><div class="footer_custom_text">Driven by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a> & <a target="_blank" rel="noopener" href="https://butterfly.js.org/">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

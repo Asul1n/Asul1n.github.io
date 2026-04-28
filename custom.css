@@ -1,0 +1,27 @@
+/* 强制首页卡片为上下结构 */
+#recent-posts > .recent-post-item {
+  flex-direction: column !important;
+  height: auto !important;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* 调整封面图高度 */
+#recent-posts > .recent-post-item .post_cover {
+  width: 100% !important;
+  height: 200px !important;
+}
+
+/* 文字区域对齐 */
+#recent-posts > .recent-post-item > .recent-post-info {
+  width: 100% !important;
+  padding: 20px !important;
+}
+
+/* 模拟图片中的分类标签样式 */
+.recent-post-item .article-meta__categories {
+  text-transform: uppercase;
+  font-weight: bold;
+  color: #49b1f5; /* 蓝色字体 */
+  font-size: 0.8rem;
+}
