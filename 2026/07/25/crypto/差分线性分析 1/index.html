@@ -1,0 +1,482 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>差分线性分析 1 | Hexo</title><meta name="author" content="Asul1n"><meta name="copyright" content="Asul1n"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="&#x3D;# 一、“单路径”的拼图：Langford-Hellman 的经典架构 (1994) 在 1994 年的顶级密码学会议 EUROCRYPT 上，Martin Hellman 与 Susan Langford 正式提出了差分-线性分析框架。为了将复杂的全轮加密拆解为可计算的局部指标，该框架建立在两个核心的随机性假设之上： 1. 独立性假设 首先，攻击者假设子密码 \(E_0\)​ 与 \(E_1\">
+<meta property="og:type" content="article">
+<meta property="og:title" content="差分线性分析 1">
+<meta property="og:url" content="https://asul1n.github.io/2026/07/25/crypto/%E5%B7%AE%E5%88%86%E7%BA%BF%E6%80%A7%E5%88%86%E6%9E%90%201/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="&#x3D;# 一、“单路径”的拼图：Langford-Hellman 的经典架构 (1994) 在 1994 年的顶级密码学会议 EUROCRYPT 上，Martin Hellman 与 Susan Langford 正式提出了差分-线性分析框架。为了将复杂的全轮加密拆解为可计算的局部指标，该框架建立在两个核心的随机性假设之上： 1. 独立性假设 首先，攻击者假设子密码 \(E_0\)​ 与 \(E_1\">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://asul1n.github.io/images/show/44873217_p0_master1200.jpg">
+<meta property="article:published_time" content="2026-07-24T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-10-02T08:50:37.862Z">
+<meta property="article:author" content="Asul1n">
+<meta property="article:tag" content="差分线性分析">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://asul1n.github.io/images/show/44873217_p0_master1200.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "差分线性分析 1",
+  "url": "https://asul1n.github.io/2026/07/25/crypto/%E5%B7%AE%E5%88%86%E7%BA%BF%E6%80%A7%E5%88%86%E6%9E%90%201/",
+  "image": "https://asul1n.github.io/images/show/44873217_p0_master1200.jpg",
+  "datePublished": "2026-07-24T16:00:00.000Z",
+  "dateModified": "2026-10-02T08:50:37.862Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Asul1n",
+      "url": "https://github.com/Asul1n"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://asul1n.github.io/2026/07/25/crypto/%E5%B7%AE%E5%88%86%E7%BA%BF%E6%80%A7%E5%88%86%E6%9E%90%201/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '差分线性分析 1',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/images/show/44873217_p0_master1200.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">19</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/show/44873217_p0_master1200.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Hexo</span></a><a class="nav-page-title" href="/"><span class="site-name">差分线性分析 1</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">差分线性分析 1</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-07-24T16:00:00.000Z" title="发表于 2026-07-25 00:00:00">2026-07-25</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-10-02T08:50:37.862Z" title="更新于 2026-10-02 16:50:37">2026-10-02</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81/">分组密码</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>=# 一、“单路径”的拼图：Langford-Hellman 的经典架构 (1994)</p>
+<p>在 1994 年的顶级密码学会议 EUROCRYPT 上，Martin Hellman 与 Susan Langford 正式提出了差分-线性分析框架。为了将复杂的全轮加密拆解为可计算的局部指标，该框架建立在两个核心的<strong>随机性假设</strong>之上：</p>
+<h4 id="独立性假设">1. 独立性假设</h4>
+<p>首先，攻击者假设子密码 <span class="math inline">\(E_0\)</span>​ 与 <span class="math inline">\(E_1\)</span>​ 之间存在<strong>统计独立性</strong>。这意味着 <span class="math inline">\(E_1\)</span>​ 的线性偏差 ϵ 是一个“全局常量”，它不随输入值的具体分布而改变。</p>
+<blockquote>
+<p><strong>逻辑承接点：</strong> 即便 <span class="math inline">\(E_0\)</span>​ 输出的是一对具有固定差分 Δ 的中间值，独立性假设也强制认为：这对中间值进入 <span class="math inline">\(E_1\)</span>​ 后激发的线性相关性，与随机选取的明文对毫无二致。这为我们将两个阶段的概率直接相乘扫清了道路。</p>
+</blockquote>
+<h4 id="随机分布假设">2. 随机分布假设</h4>
+<p>其次，当 <span class="math inline">\(E_0\)</span>​ 的差分特征<strong>未被满足</strong>时（概率为 <span class="math inline">\(1−p\)</span>），攻击者假设算法表现出<strong>类随机置换</strong>（Random Permutation）的特性。</p>
+<blockquote>
+<p><strong>逻辑承接点：</strong> 在这种“非理想”情况下，中间状态位的线性组合相等（即 <span class="math inline">\(X^{′}⋅λ_I​=X⋅λ_I\)</span>​）的概率被设定为严格的 1/2。这一假设确保了：<strong>只有当差分路径成功预测时，才能贡献出可观测的统计偏差</strong>；而剩下的情况全部被视作无法提供任何有效信息的“白噪声”。</p>
+</blockquote>
+<p>在独立性假设下，攻击者断定：<span class="math inline">\(E_1\)</span>​ 的线性偏差 <span class="math inline">\(ϵ_1\)</span>​ 仅取决于 <span class="math inline">\(E_0\)</span>​ 输出的<strong>差分值</strong>，而与产生该差分的<strong>具体中间状态值</strong>（Intermediate Values）统计无关。这意味着在给定输出差分 <span class="math inline">\(Δ\)</span> 的子集中，<span class="math inline">\(E_1\)</span>​ 的线性掩码特征表现出一致的统计特性，不随明文的选择而发生局部偏移。</p>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/20260330232255311.png" alt><figcaption>image.png</figcaption>
+</figure>
+<p>攻击者首先将加密算法 <span class="math inline">\(E\)</span> 拆分为前后两部分：<span class="math inline">\(E = E_1 \circ E_0\)</span>，假设明文为 <span class="math inline">\(P,P^{′}\)</span>，密文为 <span class="math inline">\(C,C^{′}\)</span>，中间状态为 <span class="math inline">\(X,X^{′}\)</span>。我们要验证的等式是 <span class="math inline">\(C⋅λ_O​=C^{′}⋅λ_O\)</span>，为了证明这个 0 成立，​我们可以进行如下构造：</p>
+<p><span class="math display">\[(C \cdot \lambda_O \oplus X \cdot \lambda_I) \oplus (X \cdot \lambda_I \oplus X&#39; \cdot \lambda_I) \oplus (X&#39; \cdot \lambda_I \oplus C&#39; \cdot \lambda_O) = 0\]</span></p>
+<ul>
+<li><p><strong>前半部分 (<span class="math inline">\(E_0\)</span>)</strong>： 寻找一个高概率的<strong>差分路径</strong>。假设输入差分为 <span class="math inline">\(\Omega_I\)</span>，经过 <span class="math inline">\(E_0\)</span> 后，输出差分为 <span class="math inline">\(\Omega_O\)</span> 的概率为 <span class="math inline">\(p\)</span>。</p>
+<p><span class="math display">\[
+\Pr[E_0(x) \oplus E_0(x \oplus \Omega_I) = \Omega_O] = p
+\]</span></p></li>
+<li><p><strong>后半部分 (<span class="math inline">\(E_1\)</span>)</strong> ：寻找一个高偏差的线性近似。假设输入掩码为 <span class="math inline">\(\lambda_I\)</span>，输出掩码为 <span class="math inline">\(\lambda_O\)</span>，其线性偏差（Bias）为 <span class="math inline">\(\epsilon\)</span>。</p>
+<p><span class="math display">\[
+\Pr[\lambda_I \cdot y \oplus \lambda_O \cdot E_1(y) = 0] = \frac{1}{2} + q
+\]</span></p></li>
+</ul>
+<ol type="1">
+<li><p><strong>线性近似 1 (<span class="math inline">\(E_1\)</span>​ 内部)</strong>：<span class="math inline">\(Pr[C⋅λ_O​=X⋅λ_I​]=\frac{1}{2}​+q\)</span></p></li>
+<li><p><strong>差分关联 (<span class="math inline">\(E_0\)</span>​ 衔接)</strong>：<span class="math inline">\(Pr[X⋅λ_I​=X^{′}⋅λ_I​]=\frac{1}{2}​±\frac{p}{2}\)</span></p>
+<ul>
+<li><em>注：符号取决于 <span class="math inline">\(Δ_O​⋅λ_I\)</span>​ 的奇偶性。若为 0 则为正，表示差分与掩码位正向相关。</em></li>
+</ul></li>
+<li><p><strong>线性近似 2 (<span class="math inline">\(E_1\)</span>​ 内部)</strong>：<span class="math inline">\(Pr[C^{′}⋅λ_O​=X^{′}⋅λ_I​]=\frac{1}{2}​+q\)</span></p></li>
+</ol>
+<h3 id="环节-a对差分关联的讨论">环节 A：对差分关联的讨论</h3>
+<h4 id="情况-a差分预测成功概率为-p">1. 情况 A：差分预测成功（概率为 <span class="math inline">\(p\)</span>）</h4>
+<p>此时 <span class="math inline">\(X \oplus X&#39; = \Delta_O\)</span>。根据内积性质： <span class="math display">\[(X \oplus X&#39;) \cdot \lambda_I = \Delta_O \cdot \lambda_I\]</span></p>
+<ul>
+<li><strong>若 <span class="math inline">\(\Delta_O \cdot \lambda_I = 0\)</span></strong>（差分与掩码位正交）：等式一定成立，概率为 <span class="math inline">\(1\)</span>。</li>
+<li><strong>若 <span class="math inline">\(\Delta_O \cdot \lambda_I = 1\)</span></strong>（差分与掩码位冲突）：等式一定不成立，概率为 <span class="math inline">\(0\)</span>。</li>
+</ul>
+<p>对于一个固定的 <span class="math inline">\(\Delta_O\)</span> 面对固定的掩码 <span class="math inline">\(\lambda\)</span> ，其乘积为 0 或 1是固定的，具体是哪个根据你差分和掩码的选择判断，这也是差分关联概率中 <span class="math inline">\(\frac{p}{2}\)</span> 前正负号 <span class="math inline">\(±\)</span> 的原因。</p>
+<h4 id="情况-b差分预测失败概率为-1-p">2. 情况 B：差分预测失败（概率为 <span class="math inline">\(1-p\)</span>）</h4>
+<p>根据<strong>随机分布假设</strong>，此时 <span class="math inline">\(X \oplus X&#39;\)</span> 表现为随机噪声，其与掩码 <span class="math inline">\(\lambda_I\)</span> 的内积为 <span class="math inline">\(0\)</span> 或 <span class="math inline">\(1\)</span> 的概率各占一半。因此，等式成立的概率为 <span class="math inline">\(1/2\)</span>。</p>
+<h4 id="合并计算全概率公式">3. 合并计算（全概率公式）</h4>
+<p>以 <span class="math inline">\(\Delta_O \cdot \lambda_I = 0\)</span> 为例，我们将上述两种情况加权求和：</p>
+<p><span class="math display">\[
+\begin{aligned}
+\Pr[X \cdot \lambda_I = X&#39; \cdot \lambda_I] &amp;= p \cdot (\text{情况 A 成立概率}) + (1-p) \cdot (\text{情况 B 成立概率}) \\
+&amp;= p \cdot 1 + (1-p) \cdot \frac{1}{2} \\
+&amp;= p + \frac{1}{2} - \frac{p}{2} \\
+&amp;= \frac{1}{2} + \frac{p}{2}
+\end{aligned}
+\]</span></p>
+<h3 id="环节-b松井堆积引理-matsuis-piling-up-lemma">环节 B：松井堆积引理 (Matsui’s Piling-up Lemma)</h3>
+<p>根据<strong>独立性假设</strong>，这三个事件是统计独立的。最终等式 <span class="math inline">\(C⋅λ_O​⊕C^{′}⋅λ_O​=0\)</span> 成立，当且仅当上述三个等式中“全部成立”或“恰好一个成立”。</p>
+<p>利用堆积引理，我们可以计算出总偏差 <span class="math inline">\(ϵ_{DL}\)</span>​：</p>
+<p><span class="math display">\[ϵ_{DL}​=2^{3−1}⋅q⋅(2p​)⋅q=2pq^2\]</span></p>
+<p>因此，区分器的成功概率为： <span class="math display">\[Pr[C⋅λ_O​=C^{′}⋅λ_O​]=\frac{1}{2}​+2pq^2\]</span> 继而，为了以极高的成功率将目标算法从随机置换中识别出来，攻击者所需的<strong>已知明文数</strong>（Data Complexity）约为：</p>
+<p><span class="math display">\[N \approx \frac{c}{\epsilon_{DL}^2} = \frac{c}{(2pq^2)^2} \propto p^{-2}q^{-4}\]</span></p>
+<h3 id="区分器判定">区分器判定</h3>
+<p>有了上述理论偏差 <span class="math inline">\(\epsilon_{DL}\)</span> 后，区分器的操作流程如下：</p>
+<ol type="1">
+<li><strong>数据收集</strong>： 攻击者选择大量具有差分 <span class="math inline">\(\Delta\)</span> 的明文对 <span class="math inline">\((x, x \oplus \Delta)\)</span>。</li>
+<li><strong>观察统计量</strong>： 计算对应的密文 <span class="math inline">\(z\)</span> 和 <span class="math inline">\(z&#39;\)</span>，统计 <span class="math inline">\(\Gamma \cdot z \oplus \Gamma \cdot z&#39; = 0\)</span> 成立的次数。</li>
+<li><strong>二元判定</strong>：
+<ul>
+<li><strong>如果是随机置换</strong>：该式成立的概率应严格等于 <span class="math inline">\(1/2\)</span>。</li>
+<li><strong>如果是被攻击算法</strong>：该式成立的概率应为 <span class="math inline">\(1/2 + \epsilon_{DL}\)</span>。</li>
+</ul></li>
+</ol>
+<h3 id="针对最后一轮子密钥-k_last-的恢复">针对最后一轮子密钥 <span class="math inline">\(k_{last}\)</span> 的恢复</h3>
+<p>攻击者会对最后一轮的子密钥 <span class="math inline">\(k_{last}\)</span> 进行穷举猜测（或针对部分 S 盒的局部猜测）：</p>
+<ol type="1">
+<li><p><strong>猜测</strong>：假设当前猜测的子密钥为 <span class="math inline">\(g\)</span>。</p></li>
+<li><p><strong>解密（回退）</strong>：利用 <span class="math inline">\(g\)</span> 将密文对 <span class="math inline">\((z, z&#39;)\)</span> 往回解密一轮，得到第 <span class="math inline">\(R-1\)</span> 轮的候选状态 <span class="math inline">\((\hat{y}, \hat{y}&#39;)\)</span>。</p>
+<blockquote>
+<p><strong>注意</strong>：这里只需要解密与输出掩码 <span class="math inline">\(\Gamma\)</span> 相关的位即可，不需要解密全字，这大大降低了计算量。</p>
+</blockquote></li>
+<li><p><strong>使用区分器进行“打分”</strong> 对于每一个候选密钥 <span class="math inline">\(g\)</span>，攻击者统计： <span class="math display">\[\text{Count}(g) = \sum | \{ (\hat{y}, \hat{y}&#39;) \mid \Gamma \cdot \hat{y} \oplus \Gamma \cdot \hat{y}&#39; = 0 \} |\]</span> 根据统计结果，我们可以通过偏差来识别正确密钥：</p></li>
+</ol>
+<ul>
+<li><strong>错误密钥 (<span class="math inline">\(g \neq k_{last}\)</span>)</strong>： 回退得到的 <span class="math inline">\(\hat{y}\)</span> 和 <span class="math inline">\(\hat{y}&#39;\)</span> 之间不存在预期的差分-线性关系。它们的异或和 <span class="math inline">\(\Gamma \cdot \hat{y} \oplus \Gamma \cdot \hat{y}&#39;\)</span> 看起来就像随机噪声，成立的概率接近 <span class="math inline">\(1/2\)</span>。</li>
+<li><strong>正确密钥 (<span class="math inline">\(g = k_{last}\)</span>)</strong>： 回退得到的正是真实的中间状态。此时，统计次数会明显偏离 <span class="math inline">\(N/2\)</span>，表现出我们预测的偏差 <span class="math inline">\(\epsilon_{DL}\)</span>： <span class="math display">\[\Pr[\Gamma \cdot \hat{y} \oplus \Gamma \cdot \hat{y}&#39; = 0] = \frac{1}{2} + \epsilon_{DL}\]</span></li>
+</ul>
+<h1 id="二blondeau-理论重构">二，Blondeau 理论重构</h1>
+<p>如果说 1994 年的 Langford 和 Hellman 成功搭建了差分-线性攻击的“原型机”，那么在随后的二十年里，这台机器始终笼罩在一个名为“<strong>独立性假设</strong>”的幽灵之下。</p>
+<p>在 1994 年的原始框架中，攻击者习惯于将密码系统视作两个互不干涉的黑盒：E0​（差分）与 E1​（线性）。这种做法在当时不仅是一种简化，更是一种基于实用主义的“赌注”。</p>
+<ul>
+<li><strong>实用性（为什么这么假设）：</strong> 在计算机算力有限、缺乏自动化工具的年代，“独立性假设”是推进攻击的唯一路径。它允许攻击者将复杂的全轮攻击拆解为两个可观测、可计算的局部指标。在这种假设下，总体的区分概率可以简单地表示为 Pr(DL)=Pr(Differential)×Pr(Linear)。这种“拼图式”的逻辑让攻击者能够迅速找到算法的结构性漏洞，而不必陷入复杂的全局概率推演。</li>
+</ul>
+<p>然而，这种简单的乘法背后隐藏着一个巨大的隐患：它默认了前半段的差分传播与后半段的线性偏差在交界处“握手”的那一刻，彼此之间毫无瓜葛。然而“握手”并不纯粹，当差分路径进入中间 S 盒时，它产生的特定输入对分布，必然会干扰该 S 盒随后产生的线性偏置。如果这两个特征在位级（Bit-level）存在某种隐藏的相关性，原始逻辑就会失效：</p>
+<ul>
+<li><p><strong>高估风险：</strong> 独立性假设可能导致攻击者低估了干扰，从而错过了更优的路径。</p></li>
+<li><p><strong>低估风险：</strong> 实验中观察到的实际偏差往往与理论值存在数倍甚至数十倍的偏差，导致攻击在实战中无法复现。</p></li>
+</ul>
+<p>为了量化这种‘不纯粹的握手’，2014 年 Blondeau 等人引入了 <strong>‘差分-线性壳’（Differential-Linear Hull）</strong>。他们意识到，我们不该只看那一条概率为 p 的路径，而应该把所有可能的中间状态叠加起来。</p>
+<p>但要计算这种‘全路径叠加’，我们需要一种能把‘差分语言’翻译成‘线性语言’的通用货币——这就是 <strong>Walsh 变换</strong>。</p>
+<h4 id="walsh-变换">Walsh 变换</h4>
+<p>在密码学中，我们最怕 S 盒太“线性”。为了衡量它离线性函数有多远，我们需要一个工具。</p>
+<ul>
+<li><p><strong>线性函数的形式</strong>： 在 <span class="math inline">\(\mathbb{F}_2^n\)</span> 空间，所有的线性函数都可以表示为输入位与某个掩码 <span class="math inline">\(u\)</span> 的内积： <span class="math display">\[L_u(x) = u \cdot x\]</span></p></li>
+<li><p><strong>Walsh 变换的本质</strong>： 它是在计算你的函数 <span class="math inline">\(F(x)\)</span> 与每一个可能的线性函数 <span class="math inline">\(L_u(x)\)</span> 之间的相似度（或者说一致性）。核心公式： <span class="math display">\[C(u, v) = 2^{-n} \sum_{x \in \mathbb{F}_2^n} (-1)^{v \cdot F(x) \oplus u \cdot x}\]</span> 你可以把这看作是<strong>两个信号的相干运算</strong>：</p></li>
+</ul>
+<ol type="1">
+<li><p><strong>信号 A</strong>：<span class="math inline">\((−1)^{v⋅F(x)}\)</span>（F 函数产生的实际波形）。</p></li>
+<li><p><strong>信号 B</strong>：<span class="math inline">\((−1)^{u⋅x}\)</span>（我们用来测试的“标准频率”波形）。</p>
+<ul>
+<li><p><strong>相干（Coherent）</strong>：如果 <span class="math inline">\(F\)</span> 函数在 <span class="math inline">\(x\)</span> 处的输出正好符合线性规律（即 <span class="math inline">\(v⋅F(x)=u⋅x\)</span>），那么指数项就是 <span class="math inline">\((−1)^0=1\)</span>。求和会不断累加，结果（振幅）很大。</p></li>
+<li><p><strong>非相干（Incoherent）</strong>：如果两者没关系，结果就会在 <span class="math inline">\(1\)</span> 和 <span class="math inline">\(−1\)</span> 之间随机跳变，求和后相互抵消，结果趋近于 <span class="math inline">\(0\)</span>。</p></li>
+</ul></li>
+</ol>
+<ul>
+<li><p><strong>输入 <span class="math inline">\(x\)</span></strong>：取自 <span class="math inline">\(n\)</span> 维向量空间 <span class="math inline">\(\mathbb{F}_2^n\)</span>​。</p></li>
+<li><p><strong>内积 <span class="math inline">\(u⋅x\)</span></strong>：代表一个标准的线性函数 <span class="math inline">\(L_u​(x)\)</span>。</p></li>
+<li><p><strong>指数项 <span class="math inline">\((−1)^{bit}\)</span></strong>：这是一种映射，将位值 <span class="math inline">\(\{0,1\}\)</span> 映射为复数域（实数）中的 <span class="math inline">\(\{1,−1\}\)</span>。</p>
+<ul>
+<li><p>如果 <span class="math inline">\(v⋅F(x)=u⋅x\)</span>，指数项为 1。</p></li>
+<li><p>如果 <span class="math inline">\(v⋅F(x)\ne u⋅x\)</span>，指数项为 −1。</p></li>
+</ul></li>
+<li><p><strong>归一化因子 <span class="math inline">\(2^{−n}\)</span></strong>：由于共有 <span class="math inline">\(2^n\)</span> 个输入，求和后除以总数，使结果落在 <span class="math inline">\([−1,1]\)</span> 之间。</p></li>
+</ul>
+<h4 id="chabaud-和-vaudenay-的定理">Chabaud 和 Vaudenay 的定理</h4>
+<p>根据 Chabaud 和 Vaudenay 的核心定理 (1994)，我们可以把差分概率 <span class="math inline">\(DP(\alpha, \beta)\)</span> 写成一个关于指示函数的求和：</p>
+<p><span class="math display">\[DP(\alpha, \beta) = 2^{-n} \sum_{x \in \mathbb{F}_2^n} \mathbb{I}[S(x) \oplus S(x \oplus \alpha) = \beta]\]</span></p>
+<ul>
+<li><p>指示函数 <span class="math inline">\(\mathbb{I}[condition]\)</span>：这是一个“计数器”。</p>
+<ul>
+<li><p>如果括号内的条件 <span class="math inline">\(S(x)⊕S(x⊕α)=β\)</span> 成立，它的值就是 1。</p></li>
+<li><p>如果不成立，它的值就是 0。</p></li>
+</ul></li>
+</ul>
+<p><strong>指示函数可以用 Walsh 系数（频谱）完全展开。</strong> 在 <span class="math inline">\(\mathbb{F}_2^n\)</span>​ 上，任意函数 <span class="math inline">\(f\)</span> 都可以表示为其频谱的叠加。对于差分事件而言，我们实际上是在考察两个函数值 <span class="math inline">\(S(x)\)</span> 和 <span class="math inline">\(S(x⊕α)\)</span> 的相关性。当我们将这两个项分别进行 Walsh 展开并相乘时，交叉项会在求和中坍缩，最终只剩下相关系数的平方 <span class="math inline">\(C(u,v)^2\)</span>，即：</p>
+<p><span class="math display">\[DP(\alpha, \beta) = 2^{-n} \sum_{u, v \in \mathbb{F}_2^n} (-1)^{u \cdot \alpha \oplus v \cdot \beta} C(u, v)^2\]</span></p>
+<p>这一公式的物理含义：</p>
+<ol type="1">
+<li><strong>概率与相关平方的等价性</strong>：它告诉我们，差分特性不是孤立存在的，它实际上是所有线性特性的“相干叠加”。</li>
+<li><strong>平方和</strong>：注意公式中是 <span class="math inline">\(C(u, v)^2\)</span>。在线性密码分析中，<span class="math inline">\(C^2\)</span> 被称为该线性近似的“潜力（Potential）”。这意味着差分概率是由线性潜力的加权和构成的。</li>
+<li><strong>对偶性</strong>：这个公式展示了对称密码学中极其优美的对偶关系：差分分布表（DDT）和线性近似表（LAT）实际上可以通过二维离散 Walsh 变换互相转换。</li>
+</ol>
+<p>然而，虽然 Blondeau 在宏观上完成了理论的重构，但攻击者在微观操作上仍缺乏一个顺手的‘量角器’去测量每个 S 盒内部的微小偏差——直到 2019 年 DLCT 的诞生。</p>
+<h1 id="三三明治框架">三，“三明治”框架</h1>
+<p>“三明治框架”（Sandwich Framework）是现代密码分析中的一座里程碑。它由 Dunkelman、Keller 和 Shamir 在 2011 年提出（最初针对回旋镖攻击）。</p>
+<h3 id="三明治框架sandwich-framework逻辑推导">三明治框架（Sandwich Framework）逻辑推导</h3>
+<p>在传统模型中，密码 <span class="math inline">\(E\)</span> 被简单地拆分为 <span class="math inline">\(E = E_1 \circ E_0\)</span>。但在<strong>三明治框架</strong>中，为了捕捉两部分之间的交互影响，我们在中间强行插入了一个极短的（通常仅 1-2 轮）中间层 <span class="math inline">\(E_m\)</span>：</p>
+<p><span class="math display">\[E = E_1 \circ E_m \circ E_0\]</span></p>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/20260401114730196.png" alt><figcaption>image.png</figcaption>
+</figure>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/Asul1n/Public@main/img/Gemini_Generated_Image_wgeee9wgeee9wgee.png" alt><figcaption>Gemini_Generated_Image_wgeee9wgeee9wgee.png</figcaption>
+</figure>
+<h4 id="结构分层">1. 结构分层</h4>
+<ul>
+<li><strong><span class="math inline">\(E_0\)</span>（面包底）</strong>：前半部分加密，遵循一个概率为 <span class="math inline">\(p\)</span> 的差分特征。</li>
+<li><strong><span class="math inline">\(E_1\)</span>（面包顶）</strong>：后半部分加密，遵循一个概率为 <span class="math inline">\(q\)</span> 的差分（回旋镖攻击）或偏差为 <span class="math inline">\(\epsilon\)</span> 的线性特征。</li>
+<li><strong><span class="math inline">\(E_m\)</span>（中介层）</strong>：<strong>最关键的层次</strong>。它是 <span class="math inline">\(E_0\)</span> 结束和 <span class="math inline">\(E_1\)</span> 开始的重叠区域。所有的依赖性、位级干扰、非随机分布，全都被浓缩在这个极短的 <span class="math inline">\(E_m\)</span> 中。</li>
+</ul>
+<h4 id="概率逻辑从相乘到中介因子">2. 概率逻辑：从相乘到“中介因子”</h4>
+<p>在传统的<strong>独立性假设</strong>下，总概率（或总偏差）被简化为 <span class="math inline">\(P = p \cdot q\)</span>。但在三明治框架下，公式演变为：</p>
+<p><span class="math display">\[Pr(\text{Total}) = p \cdot q \cdot r\]</span></p>
+<p>其中，<span class="math inline">\(r\)</span> 被称为 <strong>“中介概率”（The Middle Probability）</strong>。它直接决定了攻击的有效性：</p>
+<ul>
+<li><strong>正向干涉</strong>：若 <span class="math inline">\(r &gt; p \cdot q\)</span>，说明 <span class="math inline">\(E_0\)</span> 和 <span class="math inline">\(E_1\)</span> 之间存在互补关系，实际攻击效果强于理论预期。</li>
+<li><strong>独立分布</strong>：若 <span class="math inline">\(r = 1/2^n\)</span>（对于 <span class="math inline">\(n\)</span>-bit 状态），说明中间层表现为完全随机，此时独立性假设成立。</li>
+<li><strong>恶性抵消</strong>：若 <span class="math inline">\(r \approx 0\)</span>，说明两部分特征在位级上产生了冲突，即使 <span class="math inline">\(E_0\)</span> 和 <span class="math inline">\(E_1\)</span> 单独看起来很强，组合后的攻击在实战中也会彻底失效。</li>
+</ul>
+<h1 id="四dlct">四，DLCT</h1>
+<p>过去，研究者通常假设 <span class="math inline">\(E_0\)</span>​ 和 <span class="math inline">\(E_1\)</span>​ 是<strong>独立</strong>的。这意味着他们认为 <span class="math inline">\(E_0\)</span>​ 产生的差分 <span class="math inline">\(Δ\)</span> 会“随机地”触发 <span class="math inline">\(E_1\)</span>​ 的线性近似。但在实际的密码（如 S 盒）中，<span class="math inline">\(E_0\)</span>​ 的输出差分和 <span class="math inline">\(E_1\)</span>​ 的输入掩码之间往往存在强烈的<strong>统计依赖性</strong>。如果忽略这种依赖性，攻击的偏差估计就会完全错误。</p>
+<p>ar-On 等人在 2019 年的论文中提出的一种新型分析工具 <strong>DLCT (Differential-Linear Connectivity Table，差分-线性连接表)</strong>，它专门用于解决差分-线性攻击中“<strong>中介层</strong>”（Intermediate Layer）的概率评估难题。</p>
+<p>对于一个 <span class="math inline">\(n\)</span> 比特的 S 盒（或任何映射），其 DLCT 是一个 <span class="math inline">\(2^n \times 2^n\)</span> 的矩阵。 矩阵中每一个坐标 <span class="math inline">\((\Delta, \lambda)\)</span> 的值定义为：</p>
+<p><span class="math display">\[DLCT(\Delta, \lambda) = |\{x \in \mathbb{F}_2^n \mid \lambda \cdot S(x) = \lambda \cdot S(x \oplus \Delta)\}|\]</span></p>
+<ul>
+<li><strong><span class="math inline">\(\Delta\)</span> (行)</strong>：表示 S 盒的输入差分。</li>
+<li><strong><span class="math inline">\(\lambda\)</span> (列)</strong>：表示 S 盒输出的线性掩码。</li>
+</ul>
+<p><strong>偏差（Bias）关系</strong>： 该项对应的相关性（Correlation）为：</p>
+<p><span class="math display">\[Corr = \frac{DLCT(\Delta, \lambda) - 2^{n-1}}{2^{n-1}}\]</span></p>
+<p>当这个值显著偏离 <span class="math inline">\(0\)</span> 时，就说明这个差分和这个线性掩码之间存在极强的连接。</p>
+<h3 id="从-dlct-到-walsh-谱的转换">从 DLCT 到 Walsh 谱的转换</h3>
+<p>为了方便数学推导，我们将其转换为<strong>相关性 (Correlation)</strong> 形式。定义 <span class="math inline">\(C_{DL}(\Delta, \lambda)\)</span> 为：</p>
+<p><span class="math display">\[C_{DL}(\Delta, \lambda) = 2^{-n} \sum_{x \in \mathbb{F}_2^n} (-1)^{\lambda \cdot S(x) \oplus \lambda \cdot S(x \oplus \Delta)}\]</span></p>
+<p>这个值与 DLCT 的关系是：<span class="math inline">\(DLCT(\Delta, \lambda) = 2^{n-1} (1 + C_{DL}(\Delta, \lambda))\)</span>。</p>
+<h4 id="引入-walsh-变换的逆变换">1. 引入 Walsh 变换的逆变换</h4>
+<p>根据 Walsh 变换的定义，我们可以将 <span class="math inline">\(S(x)\)</span> 的线性组合用其相关系数 <span class="math inline">\(C(u, \lambda)\)</span> 表示出来（这本质上是布尔函数的谱分解）：</p>
+<p><span class="math display">\[(-1)^{\lambda \cdot S(x)} = \sum_{u \in \mathbb{F}_2^n} C(u, \lambda) (-1)^{u \cdot x}\]</span></p>
+<p>现在，我们将这个表达式代入到 DLCT 的相关性公式中。</p>
+<h4 id="核心推导平方和的奥秘">2. 核心推导：平方和的奥秘</h4>
+<p>我们将两个 <span class="math inline">\((-1)^{\lambda \cdot S}\)</span> 项分别展开：</p>
+<p><span class="math display">\[C_{DL}(\Delta, \lambda) = 2^{-n} \sum_{x} \left( \sum_{u} C(u, \lambda) (-1)^{u \cdot x} \right) \left( \sum_{w} C(w, \lambda) (-1)^{w \cdot (x \oplus \Delta)} \right)\]</span></p>
+<p>调整求和顺序，提取与 <span class="math inline">\(x\)</span> 相关的项：</p>
+<p><span class="math display">\[C_{DL}(\Delta, \lambda) = \sum_{u} \sum_{w} C(u, \lambda) C(w, \lambda) (-1)^{w \cdot \Delta} \left[ 2^{-n} \sum_{x} (-1)^{(u \oplus w) \cdot x} \right]\]</span></p>
+<h4 id="公式坍缩">3. 公式坍缩</h4>
+<p>注意方括号里的项：它是<strong>正交基</strong>的性质。只有当 <span class="math inline">\(u \oplus w = 0\)</span>（即 <span class="math inline">\(u = w\)</span>）时，该项才等于 <span class="math inline">\(1\)</span>，否则为 <span class="math inline">\(0\)</span>。</p>
+<p>于是，公式瞬间坍缩为： <span class="math display">\[C_{DL}(\Delta, \lambda) = \sum_{u \in \mathbb{F}_2^n} C(u, \lambda)^2 (-1)^{u \cdot \Delta}\]</span></p>
+<p>这个推导揭示了一个极其优美的结论：</p>
+<blockquote>
+<p><strong>DLCT 的相关性，本质上是线性相关系数平方（线性潜力）的 Walsh 变换。</strong></p>
+</blockquote>
+<ol type="1">
+<li><p><strong>对称性：</strong> DLCT 捕捉的是输入差分 Δ 与所有可能的输入掩码 u 之间的干涉。</p></li>
+<li><p><strong>独立性假设的破灭：</strong></p>
+<ul>
+<li>在 1994 年的独立性假设下，人们只看某一个特定的 u。</li>
+<li>而这个公式证明，真实的偏差是由<strong>所有可能的输入掩码 <span class="math inline">\(u\)</span> 叠加而成</strong>的，且由于 <span class="math inline">\((−1)^{u⋅Δ}\)</span> 的符号振荡，有些项会相互抵消，有些则会加强。这就是为什么独立性假设会预估不准。</li>
+</ul></li>
+<li><p><strong>计算的桥梁：</strong> 如果算好了 LAT（线性近似表），不需要遍历所有的 <span class="math inline">\(x\)</span> 去算 DLCT，直接通过 LAT 的平方进行一次快速 Walsh 变换（FWT）就能得到整张 DLCT 表。</p></li>
+</ol>
+<table>
+<colgroup>
+<col style="width: 5%">
+<col style="width: 42%">
+<col style="width: 37%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>特性表类型</strong></th>
+<th><strong>原始定义 (计数/概率形式)</strong></th>
+<th><strong>相关性/谱形式 (傅里叶/Walsh 视角)</strong></th>
+<th><strong>物理意义</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>DDT</strong> (差分)</td>
+<td><span class="math inline">\(DDT(\Delta, \nabla) = \#\{x \mid S(x) \oplus S(x \oplus \Delta) = \nabla\}\)</span></td>
+<td><span class="math inline">\(DP(\Delta, \nabla) = \sum_{u, v} (-1)^{u \cdot \Delta \oplus v \cdot \nabla} C(u, v)^2\)</span></td>
+<td>输入差分如何导致输出差分 (Chabaud-Vaudenay 定理)</td>
+</tr>
+<tr class="even">
+<td><strong>LAT</strong> (线性)</td>
+<td><span class="math inline">\(LAT(u, v) = \#\{x \mid v \cdot S(x) \oplus u \cdot x = 0\} - 2^{n-1}\)</span></td>
+<td><span class="math inline">\(C(u, v) = 2 \cdot \frac{LAT(u, v)}{2^n}\)</span></td>
+<td>输入掩码与输出掩码的线性相关性</td>
+</tr>
+<tr class="odd">
+<td><strong>DLCT</strong> (连接)</td>
+<td><span class="math inline">\(DLCT(\Delta, \lambda) = \#\{x \mid \lambda \cdot S(x) \oplus \lambda \cdot S(x \oplus \Delta) = 0\}\)</span></td>
+<td><span class="math inline">\(C_{DL}(\Delta, \lambda) = \sum_{u} (-1)^{u \cdot \Delta} C(u, \lambda)^2\)</span></td>
+<td>输入差分对输出线性偏置的干涉效应</td>
+</tr>
+</tbody>
+</table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/Asul1n">Asul1n</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://asul1n.github.io/2026/07/25/crypto/%E5%B7%AE%E5%88%86%E7%BA%BF%E6%80%A7%E5%88%86%E6%9E%90%201/">https://asul1n.github.io/2026/07/25/crypto/%E5%B7%AE%E5%88%86%E7%BA%BF%E6%80%A7%E5%88%86%E6%9E%90%201/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://Asul1n.github.io" target="_blank">Hexo</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%B7%AE%E5%88%86%E7%BA%BF%E6%80%A7%E5%88%86%E6%9E%90/">差分线性分析</a></div><div class="post-share"><div class="social-share" data-image="/images/show/44873217_p0_master1200.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/27/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6/%E6%9E%81%E9%99%90%E5%9B%9B%E5%88%99%E8%BF%90%E7%AE%97%E6%B3%95%E5%88%99/" title="极限四则运算法则为什么成立"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">极限四则运算法则为什么成立</div></div><div class="info-2"><div class="info-item-1">一、核心机制 整个证明只依赖两件事：一处翻译，和一组无穷小的运算性质。把它俩准备好，三条法则就都塌缩成一步代数。 1.1 翻译：把极限变成“常数 + 无穷小” \[\lim_{x\to x_0}f(x)=A \iff f(x)=A+\alpha,\quad \alpha \text{ 是 } x\to x_0 \text{ 时的无穷小}\] 证明就是重新命名。令 \(\alpha(x)=f(x)-A\)，那么 \[|f(x)-A|&lt;\varepsilon \iff |\alpha(x)-0|&lt;\varepsilon\] “\(f\) 趋于 \(A\)”和“\(\alpha\) 趋于 \(0\)”是同一句话。所以这一步不需要证明，只是换了个写法——但正是这个写法把“极限”变成了“代数”。 以后每次证明，起手式都是把 \(f=A+\alpha\)、\(g=B+\beta\) 代进去。 1.2 无穷小的运算性质    编号 性质 依据     1 有限个无穷小之和仍是无穷小 \(\varepsilon\) 对半分（见 1.3）   2 常数 × 无穷小 = 无穷小 性质 3...</div></div></div></a><a class="pagination-related" href="/2026/06/03/crypto/%E5%88%86%E6%9E%90%E7%AC%94%E8%AE%B0/" title="分析笔记"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">分析笔记</div></div><div class="info-2"><div class="info-item-1">赛题二：6比特APN S盒低延时实现 — 分析与试错记录 1. 赛题概况  目标: 实现 Browning/Dillon 2010年提出的6比特APN置换（S0），优化硬件延时 评价指标: D_theory（理论延时）和 D_sta（物理综合延时） 约束:  所有输入必须经过 BUF(33.557ps) 或 INV(22.048ps) 只能使用NanGate 45nm库中的标准单元 提交 theory_apn.json（理论验证）和 SB.vhd + 子模块（STA验证）   2. S0 (Dillon APN S盒) 代数特性 2.1 基本性质    性质 值     S(0) 0x00   置换 是 (64个值唯一)   APN (DDT max) 是 (DDT最大=2)   最大代数次数 4   合成循环结构 [1, 5, 28, 30]    2.2 各坐标函数 ANF    输出位 ANF项数 最大次数 单项式次数分布     y0 18 4 [1,1,1,1, 2,2,2,2,2,2,2, 3,3,3,3,3,3, 4]   y1 23 4 [1,1,1,1, 2,2...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/04/07/crypto/%E4%BB%8E%E4%BB%A3%E6%95%B0%E7%9A%84%E8%A7%86%E8%A7%92%E7%9C%8B%E5%B7%AE%E5%88%86%E7%BA%BF%E6%80%A7%E5%88%86%E6%9E%90/" title="从代数的视角看差分线性分析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-07</div><div class="info-item-2">从代数的视角看差分线性分析</div></div><div class="info-2"><div class="info-item-1">一，前置定义与引理 代数正规型 (Algebraic Normal Form, ANF) 一个 \(n\) 元布尔多项式是从 \(\mathbb{F}_2^n\)​ 到 \(\mathbb{F}_2\) 的映射，它可以唯一地表示为 \(\mathbb{F}_2\)​ 上的多元多项式： \[f(x_1, x_2, \dots, x_n) = \bigoplus_{c=(c_1, \dots, c_n) \in \mathbb{F}_2^n} a_c \prod_{i=1}^n x_i^{c_i}, \quad a_c \in \mathbb{F}_2\] 这种表示形式被称为代数正规型 (Algebraic Normal Form, ANF)。 为了让计算机高效处理，我们必须建立一套索引映射规则，将这些单项式（Monomials）有序地存入一个长度为 \(2^n\) 的数组 data[] 中。 映射逻辑：二进制位权重法 最经典且最高效的映射方式是利用二进制的位（Bit）来代表变量的存在性。 假设我们有 \(n=3\) 个变量，顺序规定为 \((x_2​,x_1​,x_0​)\)。每一...</div></div></div></a><a class="pagination-related" href="/2026/03/16/articles/lemma%205/" title="lemma 5"><img class="cover" src="/images/cover/140803217_p0_master1200.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-16</div><div class="info-item-2">lemma 5</div></div><div class="info-2"><div class="info-item-1"> 该引理提供了一个构造从 n 位映射到 m 位的平衡函数的逐级叠加结构， 首先我们观察这个方程组的特点：  \(ϕ_1\)​：由一个新变量 \(x_{n−m+1}\)​ 和前面的一些变量的函数 \(f_1\)​ 相加（异或）组成。 \(ϕ_2\)​：由下一个新变量 \(x_{n−m+2​}\) 和前面（包括刚用过的 \(x_{n−m+1}\)​）变量的函数 \(f_2\)​ 组成。 以此类推，每一个 \(ϕ_i\)​ 都引入了一个唯一的、之前没作为“主项”出现过的新变量。  为什么这样一定是平衡的，我们可以用数学归纳法或者计数逻辑来理解：  首先针对最后一个分量 \(\phi_m\) ：\(\phi_m = x_n + f_m(x_1, \cdots, x_{n-1})\) 。对于任意给定的前 \(n-1\) 个变量的值，只要 \(x_n\) 在 \(\{0,1\}\) 中切换，\(\phi_m\) 的值就一定会切换。这意味着无论前面的函数 \(f_m\)​ 多么复杂，\(ϕ_m\)​ 输出 0 和 1 的机会始终是 50/50。 整体独立性： 由于每个方程 \(i\) 都拥有一...</div></div></div></a><a class="pagination-related" href="/2026/04/13/crypto/%E6%88%AA%E6%96%AD%E5%B7%AE%E5%88%86%E5%88%86%E6%9E%90/" title="截断差分分析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-13</div><div class="info-item-2">截断差分分析</div></div><div class="info-2"><div class="info-item-1">截断差分分析是高级加密标准（AES）等分组密码分析中非常重要的一种技术。它由 Lars Knudsen 在 1994 年提出，是对常规差分分析（Differential Cryptanalysis）的推广。 在常规差分分析中，我们需要跟踪每一比特的变化：  输入差分：\(ΔX=X⊕X^{′}\) 输出差分：\(ΔY=Y⊕Y^{′}\) 分析者寻找一个高概率的差分特征 \(ΔX→ΔY\)，其中 \(ΔX\) 和 \(ΔY\) 是确定的数值。  截断差分则不同，它只关注差分向量中的一部分比特。  如果我们只关心输出差分中的某些比特是否为 0，或者某些字节是否有变化，而不关心具体的非零数值，这就是截断差分。 通俗理解：常规差分像是在追踪“变动了多少（具体数值）”，而截断差分像是在追踪“哪里动了（位置/模式）”。   假设 \(m_0m_1\cdots m_{n-1}\) 是一个 n 比特的字符串，则 \(m_0^{&#39;}m_1^{&#39;}\cdots m_{n-1}^{&#39;}\) 称为 \(m_0m_1\cdots m_{n-1}\) 的截断当且仅当对于所有的 \(0\...</div></div></div></a><a class="pagination-related" href="/2026/03/16/articles/proposition%202/" title="proposition 2"><img class="cover" src="/images/cover/104491469_p0_master1200.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-16</div><div class="info-item-2">proposition 2</div></div><div class="info-2"><div class="info-item-1"> 初次见到这个 Proof，最让我迷茫的就是 \(g(\phi(X\oplus x \Delta)) = g(\phi(X)\oplus x \cdot (D_\Delta\phi)(X))\) 的推导，首先看看当 \(x\) 取不同值时，\(Φ(X⊕xΔ)\) 会变成什么：  如果 x=0：\(Φ(X⊕0⋅Δ)=Φ(X)\) 如果 x=1：\(Φ(X⊕1⋅Δ)=Φ(X⊕Δ)\)  现在，我们要把这两个结果合并成一个带 x 的统一表达式。在布尔代数中，任何关于 x 的函数 h(x) 都可以写成： \[h(x) = h(0) \oplus x \cdot (h(1) \oplus h(0))\] 我们将 \(h(x)=Φ(X⊕xΔ)\) 代入：  \(h(0)=Φ(X)\) \(h(1)=Φ(X⊕Δ)\)  合并后得到： \[Φ(X⊕xΔ)=Φ(X)⊕x⋅(Φ(X⊕Δ)⊕Φ(X))\] 在布尔函数中，函数 F 关于位移 Δ 的导数（Derivative）定义为： \[D_Δ​F(X)=F(X⊕Δ)⊕F(X)\] 观察第一步结果中的括号部分：\((Φ(X⊕Δ)⊕Φ(X))\)。这恰恰...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/show/44873217_p0_master1200.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Asul1n</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">19</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/你的用户名" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:yourname@email.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的数字花园！这里记录了我的思考与技术笔记。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%8B%AC%E7%AB%8B%E6%80%A7%E5%81%87%E8%AE%BE"><span class="toc-text">1. 独立性假设</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9A%8F%E6%9C%BA%E5%88%86%E5%B8%83%E5%81%87%E8%AE%BE"><span class="toc-text">2. 随机分布假设</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8E%AF%E8%8A%82-a%E5%AF%B9%E5%B7%AE%E5%88%86%E5%85%B3%E8%81%94%E7%9A%84%E8%AE%A8%E8%AE%BA"><span class="toc-text">环节 A：对差分关联的讨论</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%83%85%E5%86%B5-a%E5%B7%AE%E5%88%86%E9%A2%84%E6%B5%8B%E6%88%90%E5%8A%9F%E6%A6%82%E7%8E%87%E4%B8%BA-p"><span class="toc-text">1. 情况 A：差分预测成功（概率为 \(p\)）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%83%85%E5%86%B5-b%E5%B7%AE%E5%88%86%E9%A2%84%E6%B5%8B%E5%A4%B1%E8%B4%A5%E6%A6%82%E7%8E%87%E4%B8%BA-1-p"><span class="toc-text">2. 情况 B：差分预测失败（概率为 \(1-p\)）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%88%E5%B9%B6%E8%AE%A1%E7%AE%97%E5%85%A8%E6%A6%82%E7%8E%87%E5%85%AC%E5%BC%8F"><span class="toc-text">3. 合并计算（全概率公式）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8E%AF%E8%8A%82-b%E6%9D%BE%E4%BA%95%E5%A0%86%E7%A7%AF%E5%BC%95%E7%90%86-matsuis-piling-up-lemma"><span class="toc-text">环节 B：松井堆积引理 (Matsui’s Piling-up Lemma)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8C%BA%E5%88%86%E5%99%A8%E5%88%A4%E5%AE%9A"><span class="toc-text">区分器判定</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%92%88%E5%AF%B9%E6%9C%80%E5%90%8E%E4%B8%80%E8%BD%AE%E5%AD%90%E5%AF%86%E9%92%A5-k_last-%E7%9A%84%E6%81%A2%E5%A4%8D"><span class="toc-text">针对最后一轮子密钥 \(k_{last}\) 的恢复</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8Cblondeau-%E7%90%86%E8%AE%BA%E9%87%8D%E6%9E%84"><span class="toc-text">二，Blondeau 理论重构</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#walsh-%E5%8F%98%E6%8D%A2"><span class="toc-text">Walsh 变换</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#chabaud-%E5%92%8C-vaudenay-%E7%9A%84%E5%AE%9A%E7%90%86"><span class="toc-text">Chabaud 和 Vaudenay 的定理</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E4%B8%89%E6%98%8E%E6%B2%BB%E6%A1%86%E6%9E%B6"><span class="toc-text">三，“三明治”框架</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E6%98%8E%E6%B2%BB%E6%A1%86%E6%9E%B6sandwich-framework%E9%80%BB%E8%BE%91%E6%8E%A8%E5%AF%BC"><span class="toc-text">三明治框架（Sandwich Framework）逻辑推导</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BB%93%E6%9E%84%E5%88%86%E5%B1%82"><span class="toc-text">1. 结构分层</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A6%82%E7%8E%87%E9%80%BB%E8%BE%91%E4%BB%8E%E7%9B%B8%E4%B9%98%E5%88%B0%E4%B8%AD%E4%BB%8B%E5%9B%A0%E5%AD%90"><span class="toc-text">2. 概率逻辑：从相乘到“中介因子”</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9Bdlct"><span class="toc-text">四，DLCT</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%8E-dlct-%E5%88%B0-walsh-%E8%B0%B1%E7%9A%84%E8%BD%AC%E6%8D%A2"><span class="toc-text">从 DLCT 到 Walsh 谱的转换</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BC%95%E5%85%A5-walsh-%E5%8F%98%E6%8D%A2%E7%9A%84%E9%80%86%E5%8F%98%E6%8D%A2"><span class="toc-text">1. 引入 Walsh 变换的逆变换</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%8E%A8%E5%AF%BC%E5%B9%B3%E6%96%B9%E5%92%8C%E7%9A%84%E5%A5%A5%E7%A7%98"><span class="toc-text">2. 核心推导：平方和的奥秘</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%AC%E5%BC%8F%E5%9D%8D%E7%BC%A9"><span class="toc-text">3. 公式坍缩</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/27/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6/%E6%9E%81%E9%99%90%E5%9B%9B%E5%88%99%E8%BF%90%E7%AE%97%E6%B3%95%E5%88%99/" title="极限四则运算法则为什么成立">极限四则运算法则为什么成立</a><time datetime="2026-09-26T16:00:00.000Z" title="发表于 2026-09-27 00:00:00">2026-09-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/25/crypto/%E5%B7%AE%E5%88%86%E7%BA%BF%E6%80%A7%E5%88%86%E6%9E%90%201/" title="差分线性分析 1">差分线性分析 1</a><time datetime="2026-07-24T16:00:00.000Z" title="发表于 2026-07-25 00:00:00">2026-07-25</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/03/crypto/%E5%88%86%E6%9E%90%E7%AC%94%E8%AE%B0/" title="分析笔记">分析笔记</a><time datetime="2026-06-02T16:00:00.000Z" title="发表于 2026-06-03 00:00:00">2026-06-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/15/Cpp/%E9%93%BE%E8%A1%A8%E7%BB%86%E8%8A%82/" title="链表">链表</a><time datetime="2026-05-14T16:00:00.000Z" title="发表于 2026-05-15 00:00:00">2026-05-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/07/crypto/SAT_solver/%E5%8F%98%E9%87%8F%E6%B1%A0/" title="变量池">变量池</a><time datetime="2026-05-06T16:00:00.000Z" title="发表于 2026-05-07 00:00:00">2026-05-07</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2024 - 2026 By Asul1n</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div><div class="footer_custom_text">Driven by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a> & <a target="_blank" rel="noopener" href="https://butterfly.js.org/">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

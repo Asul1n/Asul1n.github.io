@@ -1,0 +1,667 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Hexo | Hexo</title><meta name="author" content="Asul1n"><meta name="copyright" content="Asul1n"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="赛题二：6比特APN S盒低延时实现 — 分析与试错记录 1. 赛题概况  目标: 实现 Browning&#x2F;Dillon 2010年提出的6比特APN置换（S0），优化硬件延时 评价指标: D_theory（理论延时）和 D_sta（物理综合延时） 约束:  所有输入必须经过 BUF(33.557ps) 或 INV(22.048ps) 只能使用NanGate 45nm库中的标准单元 提交 theo">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="https://asul1n.github.io/images/%E5%88%86%E6%9E%90%E7%AC%94%E8%AE%B0.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="赛题二：6比特APN S盒低延时实现 — 分析与试错记录 1. 赛题概况  目标: 实现 Browning&#x2F;Dillon 2010年提出的6比特APN置换（S0），优化硬件延时 评价指标: D_theory（理论延时）和 D_sta（物理综合延时） 约束:  所有输入必须经过 BUF(33.557ps) 或 INV(22.048ps) 只能使用NanGate 45nm库中的标准单元 提交 theo">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://asul1n.github.io/images/show/44873217_p0_master1200.jpg">
+<meta property="article:published_time" content="2026-05-07T14:58:16.808Z">
+<meta property="article:modified_time" content="2026-05-07T14:58:16.808Z">
+<meta property="article:author" content="Asul1n">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://asul1n.github.io/images/show/44873217_p0_master1200.jpg"><script type="application/ld+json"></script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://asul1n.github.io/images/%E5%88%86%E6%9E%90%E7%AC%94%E8%AE%B0.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Hexo',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'page'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/images/show/44873217_p0_master1200.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">19</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="not-home-page" id="page-header" style="background-image: url(/images/show/44873217_p0_master1200.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Hexo</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="page-site-info"><h1 id="site-title"></h1></div></header><main class="layout" id="content-inner"><div id="page"><div class="container" id="article-container"><h1 id="赛题二6比特apn-s盒低延时实现-分析与试错记录">赛题二：6比特APN S盒低延时实现 — 分析与试错记录</h1>
+<h2 id="赛题概况">1. 赛题概况</h2>
+<ul>
+<li><strong>目标</strong>: 实现 Browning/Dillon 2010年提出的6比特APN置换（S0），优化硬件延时</li>
+<li><strong>评价指标</strong>: D_theory（理论延时）和 D_sta（物理综合延时）</li>
+<li><strong>约束</strong>:
+<ul>
+<li>所有输入必须经过 BUF(33.557ps) 或 INV(22.048ps)</li>
+<li>只能使用NanGate 45nm库中的标准单元</li>
+<li>提交 theory_apn.json（理论验证）和 SB.vhd + 子模块（STA验证）</li>
+</ul></li>
+</ul>
+<h2 id="s0-dillon-apn-s盒-代数特性">2. S0 (Dillon APN S盒) 代数特性</h2>
+<h3 id="基本性质">2.1 基本性质</h3>
+<table>
+<thead>
+<tr class="header">
+<th>性质</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>S(0)</td>
+<td>0x00</td>
+</tr>
+<tr class="even">
+<td>置换</td>
+<td>是 (64个值唯一)</td>
+</tr>
+<tr class="odd">
+<td>APN (DDT max)</td>
+<td>是 (DDT最大=2)</td>
+</tr>
+<tr class="even">
+<td>最大代数次数</td>
+<td>4</td>
+</tr>
+<tr class="odd">
+<td>合成循环结构</td>
+<td>[1, 5, 28, 30]</td>
+</tr>
+</tbody>
+</table>
+<h3 id="各坐标函数-anf">2.2 各坐标函数 ANF</h3>
+<table>
+<thead>
+<tr class="header">
+<th>输出位</th>
+<th>ANF项数</th>
+<th>最大次数</th>
+<th>单项式次数分布</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>y0</td>
+<td>18</td>
+<td>4</td>
+<td>[1,1,1,1, 2,2,2,2,2,2,2, 3,3,3,3,3,3, 4]</td>
+</tr>
+<tr class="even">
+<td>y1</td>
+<td>23</td>
+<td>4</td>
+<td>[1,1,1,1, 2,2,2,2,2,2,2,2, 3,3,3,3,3,3,3,3,3,3, 4]</td>
+</tr>
+<tr class="odd">
+<td>y2</td>
+<td>11</td>
+<td>3</td>
+<td>[1,1,1, 2,2,2,2, 3,3,3,3]</td>
+</tr>
+<tr class="even">
+<td>y3</td>
+<td>22</td>
+<td>4</td>
+<td>[1,1,1, 2,2,2,2,2,2,2,2,2, 3,3,3,3,3,3,3,3,3, 4]</td>
+</tr>
+<tr class="odd">
+<td>y4</td>
+<td>17</td>
+<td>3</td>
+<td>[1,1,1,1, 2,2,2,2,2,2, 3,3,3,3,3,3,3]</td>
+</tr>
+<tr class="even">
+<td>y5</td>
+<td>22</td>
+<td>4</td>
+<td>[1,1,1,1, 2,2,2,2, 3,3,3,3,3,3,3,3,3,3,3,3, 4,4]</td>
+</tr>
+</tbody>
+</table>
+<h3 id="最小-sop-覆盖贪心">2.3 最小 SOP 覆盖（贪心）</h3>
+<table>
+<thead>
+<tr class="header">
+<th>输出位</th>
+<th>SOP项数</th>
+<th>最大文字数</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>y0</td>
+<td>15</td>
+<td>5</td>
+</tr>
+<tr class="even">
+<td>y1</td>
+<td>15</td>
+<td>5</td>
+</tr>
+<tr class="odd">
+<td>y2</td>
+<td>17</td>
+<td>6</td>
+</tr>
+<tr class="even">
+<td>y3</td>
+<td>15</td>
+<td>6</td>
+</tr>
+<tr class="odd">
+<td>y4</td>
+<td>13</td>
+<td>5</td>
+</tr>
+<tr class="even">
+<td>y5</td>
+<td>14</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+<p>总计：83个不同的乘积项，仅5个被多个输出共享。</p>
+<h2 id="不同实现策略的理论延时估计">3. 不同实现策略的理论延时估计</h2>
+<h3 id="策略对比表">3.1 策略对比表</h3>
+<table>
+<thead>
+<tr class="header">
+<th>策略</th>
+<th>门级结构</th>
+<th>估计 D_theory</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>ANF + XOR树</strong></td>
+<td>INV→NAND→XOR树</td>
+<td>349-432 ps</td>
+<td>结构简单、项数少</td>
+<td>XOR2=73.019ps太慢</td>
+</tr>
+<tr class="even">
+<td><strong>NAND树 (SOP)</strong></td>
+<td>INV→NAND→NAND级联</td>
+<td>186-214 ps</td>
+<td>使用快速NAND门</td>
+<td>项数多、需要多级</td>
+</tr>
+<tr class="odd">
+<td><strong>MUX分解</strong></td>
+<td>Shannon分解+MUX级联</td>
+<td>257-274 ps</td>
+<td>可递归简化</td>
+<td>MUX2=75.175ps较慢</td>
+</tr>
+<tr class="even">
+<td><strong>GF(64)立方</strong></td>
+<td>x³ on GF(64)+仿射</td>
+<td>未验证</td>
+<td>利用代数结构</td>
+<td>S0不是简单的x³</td>
+</tr>
+</tbody>
+</table>
+<h3 id="各策略详细分析">3.2 各策略详细分析</h3>
+<p><strong>ANF + XOR树</strong>： - 路径：INV(22.048) + NAND(27.886-44.487) + ceil(log2(n)) × XOR2(73.019) - 对于18项的y0：22.048 + 34.767 + 5×73.019 = <strong>421.9 ps</strong> - ANF项数（11-23）比SOP项数（13-17）少，但XOR2太慢</p>
+<p><strong>NAND树 (SOP)</strong>： - 路径：INV(22.048) + NAND3(34.767) + NAND4(44.487) + NAND4(44.487)（4层） - 估计：22.048 + 34.767 + 44.487 + 44.487 = <strong>145.8 ps</strong>（最优4层） - y2需要17项，是最复杂的 → 需要4层NAND → 约186 ps</p>
+<p><strong>MUX分解</strong>： - 路径：INV(22.048) + max(子树延时) + MUX2(75.175) - 递归3-4层 → 267-274 ps</p>
+<h2 id="与speedy-s盒的对比">4. 与SPEEDY S盒的对比</h2>
+<p>SPEEDY S盒使用标准NAND树结构： - 结构：BUF(33.557) → NAND3(34.767) → NAND4(44.487) - D_theory = <strong>112.811 ps</strong> - 使用3输出NAND_TREE_1x2_3x3（1个NAND2+3个NAND3 → NAND4） - 使用3输出NAND_TREE_4x3（4个NAND3 → NAND4）</p>
+<p><strong>S0比SPEEDY更复杂</strong>：SPEEDY各输出只需4个乘积项（2层NAND即可），S0各输出需要13-17个乘积项（需要3-4层NAND）。</p>
+<h2 id="gf64代数分解探索">5. GF(64)代数分解探索</h2>
+<h3 id="尝试的分解">5.1 尝试的分解</h3>
+<ol type="1">
+<li><strong>x → x³ on GF(64)</strong>：不是置换（gcd(3,63)=3，3-to-1映射）</li>
+<li><strong>x → x + x³ on GF(64)</strong>：对多个不可约多项式测试，与S0不直接匹配</li>
+<li><strong>Dillon构造</strong>：F(x) = x + Tr(x³ + x⁵) 或类似形式，需要具体验证</li>
+<li><strong>仿射等价搜索</strong>：2^36种可能的线性变换，无法穷举</li>
+</ol>
+<h3 id="已知参考文献">5.2 已知参考文献</h3>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://docta.ucm.es/entities/publication/504c8451-63b7-48cc-ab1e-7f75a47b7061">Decomposition of Dillon’s APN permutation with efficient hardware implementation</a></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2511.01003">On the Classification of Dillon’s APN Hexanomials</a></li>
+<li><a target="_blank" rel="noopener" href="https://orbilu.uni.lu/bitstream/10993/28414/1/539(1).pdf">Cryptanalysis of a Theorem: Decomposing the Only Known Solution to the Big APN Problem</a></li>
+</ul>
+<h2 id="关键门延时表-nangate-45nm">6. 关键门延时表 (NanGate 45nm)</h2>
+<table>
+<thead>
+<tr class="header">
+<th>门类型</th>
+<th>延时 (ps)</th>
+<th>面积 (GE)</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>INV</td>
+<td>22.048</td>
+<td>0.67</td>
+<td><strong>最快门</strong></td>
+</tr>
+<tr class="even">
+<td>NAND2</td>
+<td>27.886</td>
+<td>1.00</td>
+<td><strong>极快</strong></td>
+</tr>
+<tr class="odd">
+<td>OAI21</td>
+<td>32.651</td>
+<td>1.33</td>
+<td>~(a|b)&amp;c，快速复合门</td>
+</tr>
+<tr class="even">
+<td>BUF</td>
+<td>33.557</td>
+<td>1.00</td>
+<td>输入必须用BUF或INV</td>
+</tr>
+<tr class="odd">
+<td>NAND3</td>
+<td>34.767</td>
+<td>1.33</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>AND2</td>
+<td>40.171</td>
+<td>1.33</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>NOR2</td>
+<td>40.650</td>
+<td>1.33</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>NAND4</td>
+<td>44.487</td>
+<td>2.00</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>AOI21</td>
+<td>51.619</td>
+<td>1.33</td>
+<td>~(a&amp;b)|c</td>
+</tr>
+<tr class="even">
+<td>XNOR2</td>
+<td>57.604</td>
+<td>2.00</td>
+<td>比XOR2快15ps</td>
+</tr>
+<tr class="odd">
+<td>XOR2</td>
+<td>73.019</td>
+<td>2.00</td>
+<td><strong>慢</strong>，尽量避免</td>
+</tr>
+<tr class="even">
+<td>MUX2</td>
+<td>75.175</td>
+<td>2.33</td>
+<td><strong>慢</strong></td>
+</tr>
+<tr class="odd">
+<td>OR4</td>
+<td>118.592</td>
+<td>2.67</td>
+<td><strong>最慢</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="最优延时路径分析">7. 最优延时路径分析</h2>
+<p>以INV(22.048)作为输入缓冲（不用BUF，节省11.5ps）：</p>
+<table>
+<thead>
+<tr class="header">
+<th>层数</th>
+<th>结构</th>
+<th>总延时</th>
+<th>表达能力</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>2层</td>
+<td>INV→NAND2→NAND2</td>
+<td><strong>77.8 ps</strong></td>
+<td>2个2文字乘积项的OR</td>
+</tr>
+<tr class="even">
+<td>2层</td>
+<td>INV→NAND3→NAND4</td>
+<td><strong>101.3 ps</strong></td>
+<td>4个3文字乘积项的OR</td>
+</tr>
+<tr class="odd">
+<td>3层</td>
+<td>INV→NAND2→NAND2→NAND2</td>
+<td><strong>105.7 ps</strong></td>
+<td>级联NAND，受限于扇入</td>
+</tr>
+<tr class="even">
+<td>3层</td>
+<td>INV→NAND2→NAND4→NAND2</td>
+<td><strong>116.9 ps</strong></td>
+<td>2组OR后再OR</td>
+</tr>
+<tr class="odd">
+<td>3层</td>
+<td>INV→NAND3→NAND4→INV→NAND2</td>
+<td><strong>151.4 ps</strong></td>
+<td>8个乘积项的OR（两组4项）</td>
+</tr>
+<tr class="even">
+<td>4层</td>
+<td>INV→NAND3→NAND4→INV→NAND4</td>
+<td><strong>167.8 ps</strong></td>
+<td>16个乘积项的OR（四组4项）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>关键约束</strong>：S0每个输出需要13-17个SOP项 → 至少需要4层NAND逻辑 → D_theory ≥ 167 ps。</p>
+<h2 id="ches-2026论文方法在s0上的应用前景">8. CHES 2026论文方法在S0上的应用前景</h2>
+<p>Jia等人的方法核心是： 1. <strong>取反模式(NPS)</strong>：用NAND门（带反相输入）高效表示多个ANF单项式 2. <strong>可吸收合并</strong>：低深度项并入高深度项的XOR树中，不增加关键路径 3. <strong>项迁移</strong>：在不同深度层级间重分配项以实现平衡</p>
+<p><strong>对S0的潜在改进</strong>： - 如果能将SOP项数从13-17减少到8个左右 → 可以用3层NAND结构 → D_theory降到151 ps - 更激进：减少到4个 → 2层NAND → D_theory降到101 ps（但可能性很低）</p>
+<h2 id="实现中的问题和教训">9. 实现中的问题和教训</h2>
+<h3 id="sop最小化的问题">9.1 SOP最小化的问题</h3>
+<ul>
+<li>贪心集合覆盖找到了13-17项，但可能不是最优的</li>
+<li>精确最小化算法（分支定界）在实现时因除零错误崩溃</li>
+<li>需要更好的逻辑最小化方法（可能用Espresso启发式算法）</li>
+</ul>
+<h3 id="nand树架构问题">9.2 NAND树架构问题</h3>
+<ul>
+<li>NAND1不存在：单文字项需要特殊处理（INV或BUF）</li>
+<li>多级NAND树（&gt;4项）的输出组合逻辑有误：
+<ul>
+<li>NAND(NAND(NOT(P1),NOT(P2)), NAND(NOT(P3),NOT(P4))) = NOT(G1 AND G2)，不等于G1 OR G2</li>
+<li>正确做法：NAND(INV(G1), INV(G2)) = G1 OR G2</li>
+</ul></li>
+<li>需要额外的INV层级来正确实现多组OR</li>
+</ul>
+<h3 id="搜索空间">9.3 搜索空间</h3>
+<ul>
+<li>对6比特函数穷举搜索门级实现：Level-1有约1600个候选门，Level-2组合爆炸</li>
+<li>完全穷举不可行，需要启发式方法</li>
+</ul>
+<h2 id="下一步计划">10. 下一步计划</h2>
+<ol type="1">
+<li><strong>修正NAND树实现</strong>：正确实现多级NAND结构，获得工作基线</li>
+<li><strong>尝试代数分解</strong>：研究Dillon APN的已知分解（GF(2³)子域、butterfly结构）</li>
+<li><strong>SAT辅助优化</strong>：参考CHES 2026论文，对6比特S盒使用SAT求解器寻找最优NPS表示</li>
+<li><strong>共享子表达式</strong>：5个共享项不够，需要更主动地寻找公共子表达式</li>
+<li><strong>生成VHDL结构实现</strong>：将优化后的门级网表转化为VHD结构化代码（SB.vhd + 子模块）</li>
+</ol>
+</div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/show/44873217_p0_master1200.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Asul1n</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">19</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/你的用户名" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:yourname@email.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的数字花园！这里记录了我的思考与技术笔记。</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/27/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6/%E6%9E%81%E9%99%90%E5%9B%9B%E5%88%99%E8%BF%90%E7%AE%97%E6%B3%95%E5%88%99/" title="极限四则运算法则为什么成立">极限四则运算法则为什么成立</a><time datetime="2026-09-26T16:00:00.000Z" title="发表于 2026-09-27 00:00:00">2026-09-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/25/crypto/%E5%B7%AE%E5%88%86%E7%BA%BF%E6%80%A7%E5%88%86%E6%9E%90%201/" title="差分线性分析 1">差分线性分析 1</a><time datetime="2026-07-24T16:00:00.000Z" title="发表于 2026-07-25 00:00:00">2026-07-25</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/03/crypto/%E5%88%86%E6%9E%90%E7%AC%94%E8%AE%B0/" title="分析笔记">分析笔记</a><time datetime="2026-06-02T16:00:00.000Z" title="发表于 2026-06-03 00:00:00">2026-06-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/15/Cpp/%E9%93%BE%E8%A1%A8%E7%BB%86%E8%8A%82/" title="链表">链表</a><time datetime="2026-05-14T16:00:00.000Z" title="发表于 2026-05-15 00:00:00">2026-05-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/07/crypto/SAT_solver/%E5%8F%98%E9%87%8F%E6%B1%A0/" title="变量池">变量池</a><time datetime="2026-05-06T16:00:00.000Z" title="发表于 2026-05-07 00:00:00">2026-05-07</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            <a class="card-more-btn" href="/categories/" title="查看更多">
+      <i class="fas fa-angle-right"></i></a>
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Crypto/"><span class="card-category-list-name">Crypto</span><span class="card-category-list-count">5</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Distributed-System/"><span class="card-category-list-name">Distributed System</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Linear-Algebra/"><span class="card-category-list-name">Linear Algebra</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/articles/"><span class="card-category-list-name">articles</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/cpp/"><span class="card-category-list-name">cpp</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/crypto/"><span class="card-category-list-name">crypto</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/hexo/"><span class="card-category-list-name">hexo</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81/"><span class="card-category-list-name">分组密码</span><span class="card-category-list-count">5</span></a></li>
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/%E5%B8%83%E5%B0%94%E4%BB%A3%E6%95%B0/" style="font-size: 1.3em; color: #99a1ac">布尔代数</a> <a href="/tags/C-11/" style="font-size: 1.1em; color: #999">C++11</a> <a href="/tags/%E5%B7%AE%E5%88%86%E7%BA%BF%E6%80%A7%E5%88%86%E6%9E%90/" style="font-size: 1.5em; color: #99a9bf">差分线性分析</a> <a href="/tags/%E9%85%8D%E7%BD%AE/" style="font-size: 1.1em; color: #999">配置</a> <a href="/tags/%E7%BA%BF%E6%80%A7%E5%88%86%E6%9E%90/" style="font-size: 1.3em; color: #99a1ac">线性分析</a> <a href="/tags/Cpp/" style="font-size: 1.1em; color: #999">Cpp</a> <a href="/tags/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81/" style="font-size: 1.3em; color: #99a1ac">分组密码</a> <a href="/tags/cpp/" style="font-size: 1.3em; color: #99a1ac">cpp</a> <a href="/tags/%E6%9E%81%E9%99%90/" style="font-size: 1.1em; color: #999">极限</a> <a href="/tags/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6/" style="font-size: 1.1em; color: #999">高等数学</a> <a href="/tags/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" style="font-size: 1.1em; color: #999">线性代数</a></div></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/09/">
+            <span class="card-archive-list-date">
+              九月 2026
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/07/">
+            <span class="card-archive-list-date">
+              七月 2026
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/06/">
+            <span class="card-archive-list-date">
+              六月 2026
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/05/">
+            <span class="card-archive-list-date">
+              五月 2026
+            </span>
+            <span class="card-archive-list-count">2</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/04/">
+            <span class="card-archive-list-date">
+              四月 2026
+            </span>
+            <span class="card-archive-list-count">8</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/03/">
+            <span class="card-archive-list-date">
+              三月 2026
+            </span>
+            <span class="card-archive-list-count">6</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">19</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-10-02T09:12:25.017Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2024 - 2026 By Asul1n</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div><div class="footer_custom_text">Driven by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a> & <a target="_blank" rel="noopener" href="https://butterfly.js.org/">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
